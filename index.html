@@ -64,7 +64,7 @@
             column-gap: 15px;
             padding: 15px;
             box-sizing: border-box;
-            opacity: 0; 
+            opacity: 1; 
             transition: opacity 0.8s ease;
         }
 
@@ -144,6 +144,10 @@
         @media screen and (max-width: 767px) {
             .frauki-style-gallery { column-count: 1; padding: 10px; }
             .lightbox { display: none !important; }
+        }
+        @media screen and (max-width: 767px) {
+            #gallery-preloader { display: none !important; }
+            .frauki-style-gallery { opacity: 1 !important; }
         }
     </style>
 </head>
@@ -254,7 +258,7 @@
 
             function checkCount() {
                 loadCount++;
-                if (loadCount >= imgs.length) setTimeout(finishLoading, 800);
+                if (loadCount >= imgs.length) setTimeout(finishLoading, 0);
             }
 
             // ЖЕСТКАЯ ОЧИСТКА БЕЗ НАЛОЖЕНИЯ
@@ -316,6 +320,7 @@
     </script>
 </body>
 </html>
+
 
 
 

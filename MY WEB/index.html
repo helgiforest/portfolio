@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frauki Style | Portfolio</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=New+Tegomin&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-color: #FAF7EF;
+            --text-color: #111;
+            --transition-speed: 0.4s;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            font-family: 'New Tegomin', serif;
+            color: var(--text-color);
+        }
+
+        /* ПРЕЛОАДЕР */
+        #gallery-preloader {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: var(--bg-color);
+            z-index: 1000000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.6s ease, visibility 0.6s;
+        }
+
+        .preloader-content {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        #preloader-img {
+            width: 150px; height: 200px;
+            object-fit: cover;
+            opacity: 0.9;
+        }
+
+        .preloader-text {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            opacity: 0.5;
+        }
+
+        /* ГАЛЕРЕЯ */
+        .frauki-style-gallery {
+            line-height: 0;
+            column-width: 450px;
+            column-gap: 15px;
+            padding: 15px;
+            box-sizing: border-box;
+            opacity: 0; 
+            transition: opacity 0.8s ease;
+        }
+
+        /* --- CSS ИЗ SQUARESPACE --- */
+        .m-item { 
+            display: block; 
+            margin-bottom: 15px; 
+            break-inside: avoid; 
+            cursor: pointer; 
+            overflow: hidden !important; 
+        }
+
+        .m-item img { 
+            width: 100%; 
+            height: auto; 
+            display: block; 
+            transition: transform 1.2s cubic-bezier(0.15, 0, 0.2, 1), 
+                        filter 0.8s ease, 
+                        opacity 0.8s ease !important;
+            will-change: transform;
+        }
+
+        .m-item:hover img {
+            transform: scale(1.02) !important; 
+            filter: brightness(1.03) contrast(1.02) !important; 
+            opacity: 0.97 !important; 
+        }
+
+        /* ЛАЙТБОКС */
+        .lightbox {
+            display: none;
+            position: fixed;
+            z-index: 999999;
+            left: 0; top: 0; width: 100%; height: 100%;
+            background-color: var(--bg-color);
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        #lb-container {
+            width: 90%;
+            height: 80vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .lightbox-content { 
+            max-width: 100%; 
+            max-height: 100%; 
+            object-fit: contain; 
+            opacity: 0;
+            transition: opacity var(--transition-speed) ease-in-out;
+        }
+
+        .lb-controls-corner { 
+            position: absolute; 
+            bottom: 40px; 
+            right: 40px; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: flex-end; 
+            gap: 8px; 
+            z-index: 1010;
+        }
+        .lb-nav-group { display: flex; gap: 10px; align-items: center; }
+        .lb-text-btn { 
+            font-size: 13px; 
+            text-transform: lowercase; 
+            cursor: pointer; 
+            user-select: none;
+        }
+        .lb-text-btn:hover { opacity: 0.5; }
+        .lb-separator { opacity: 0.3; }
+
+        @media screen and (max-width: 767px) {
+            .frauki-style-gallery { column-count: 1; padding: 10px; }
+            .lightbox { display: none !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="gallery-preloader">
+        <div class="preloader-content">
+            <img id="preloader-img" src="" alt="loading">
+            <div class="preloader-text">loading project</div>
+        </div>
+    </div>
+
+    <div class="frauki-style-gallery" id="main-gallery">
+        <div class="m-item"><img src="https://cdn.assets.lomography.com/74/3bbf03e354ab6172a67a3ab4ced468263084f1/1216x1796x1.jpg?auth=abd3a90017834558f514184bd4b9e38c8815b50c"></div>
+        <div class="m-item"><img src="https://cdn.assets.lomography.com/18/9279ce6c831f6bf45ccf74d2c9e4e0af7e6a90/1216x840x1.jpg?auth=267f9df6bb987f47a64b71a368f8703d2d36372a"></div>
+        <div class="m-item"><img src="https://cdn.assets.lomography.com/07/dc65830ecc2c549699c1d6e88f068fbf08d460/1216x1776x1.jpg?auth=11a25cf1b86b5915ea73041c6f3792db41a92f1e"></div>
+        <div class="m-item"><img src="https://cdn.assets.lomography.com/a8/3897842e62f87dc6dafdbab19a01854796ff18/1216x1520x1.jpg?auth=4a024f98a5afe9fb98a04fd5dbb41b20b3fb2031"></div>
+
+    </div>
+
+    <div id="custom-lightbox" class="lightbox">
+        <div id="lb-container"></div>
+        <div class="lb-controls-corner">
+            <div class="lb-nav-group">
+                <div class="lb-text-btn lb-prev">prev</div>
+                <span class="lb-separator">/</span>
+                <div class="lb-text-btn lb-next">next</div>
+            </div>
+            <div class="lb-text-btn lb-close">show thumbnails</div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const gallery = document.getElementById('main-gallery');
+            const preloader = document.getElementById('gallery-preloader');
+            const preloaderImg = document.getElementById('preloader-img');
+            const imgs = Array.from(document.querySelectorAll('.m-item img'));
+            const lb = document.getElementById('custom-lightbox');
+            const lbContainer = document.getElementById('lb-container');
+            
+            let loadCount = 0;
+            let flashIndex = 0;
+            let currentIndex = 0;
+
+            const flashInterval = setInterval(() => {
+                if(imgs.length > 0) {
+                    preloaderImg.src = imgs[flashIndex].src;
+                    flashIndex = (flashIndex + 1) % imgs.length;
+                }
+            }, 120);
+
+            function finishLoading() {
+                clearInterval(flashInterval);
+                preloader.style.opacity = '0';
+                setTimeout(() => {
+                    preloader.style.visibility = 'hidden';
+                    gallery.style.opacity = '1';
+                }, 600);
+            }
+
+            imgs.forEach(img => {
+                if (img.complete) checkCount();
+                else {
+                    img.addEventListener('load', checkCount);
+                    img.addEventListener('error', checkCount);
+                }
+            });
+
+            function checkCount() {
+                loadCount++;
+                if (loadCount >= imgs.length) setTimeout(finishLoading, 800);
+            }
+
+            // ЖЕСТКАЯ ОЧИСТКА БЕЗ НАЛОЖЕНИЯ
+            function renderImage(index) {
+                currentIndex = index;
+                
+                // 1. Мгновенно удаляем всё старое из контейнера
+                lbContainer.innerHTML = '';
+                
+                // 2. Создаем новую картинку
+                const newImg = document.createElement('img');
+                newImg.className = 'lightbox-content';
+                newImg.src = imgs[currentIndex].src;
+                
+                // 3. Кладем в контейнер
+                lbContainer.appendChild(newImg);
+
+                // 4. Плавно проявляем через микро-таймаут
+                setTimeout(() => {
+                    newImg.style.opacity = '1';
+                }, 10);
+            }
+
+            imgs.forEach((item, idx) => {
+                item.parentElement.addEventListener('click', () => {
+                    if (window.innerWidth > 767) {
+                        lb.style.display = 'flex';
+                        document.body.style.overflow = 'hidden';
+                        renderImage(idx);
+                    }
+                });
+            });
+
+            const closeBtn = document.querySelector('.lb-close');
+            closeBtn.onclick = () => {
+                lb.style.display = 'none';
+                document.body.style.overflow = 'auto';
+                lbContainer.innerHTML = ''; 
+            };
+
+            document.querySelector('.lb-next').onclick = (e) => { 
+                e.stopPropagation(); 
+                renderImage((currentIndex + 1) % imgs.length); 
+            };
+            document.querySelector('.lb-prev').onclick = (e) => { 
+                e.stopPropagation(); 
+                renderImage((currentIndex - 1 + imgs.length) % imgs.length); 
+            };
+            
+            lb.onclick = (e) => { if (e.target === lb || e.target === lbContainer) closeBtn.click(); };
+
+            document.addEventListener('keydown', (e) => {
+                if (lb.style.display !== 'flex') return;
+                if (e.key === "ArrowRight") renderImage((currentIndex + 1) % imgs.length);
+                if (e.key === "ArrowLeft") renderImage((currentIndex - 1 + imgs.length) % imgs.length);
+                if (e.key === "Escape") closeBtn.click();
+            });
+        });
+    </script>
+</body>
+</html>

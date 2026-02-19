@@ -24,6 +24,43 @@
             color: var(--text-color);
         }
 
+        /* --- СТИЛИ ШАПКИ --- */
+        .main-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            padding: 40px 20px 20px 20px;
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+
+        .logo {
+            font-size: 32px;
+            letter-spacing: -0.02em;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+        }
+
+        .nav-item {
+            text-decoration: none;
+            color: var(--text-color);
+            font-size: 16px;
+            opacity: 0.8;
+            transition: opacity 0.2s ease;
+        }
+
+        .nav-item:hover {
+            opacity: 1;
+        }
+
+        .nav-item.active {
+            border-bottom: 1.5px solid var(--text-color);
+            opacity: 1;
+        }
+
         /* ПРЕЛОАДЕР */
         #gallery-preloader {
             position: fixed;
@@ -144,10 +181,20 @@
         @media screen and (max-width: 767px) {
             .frauki-style-gallery { column-count: 1; padding: 10px; }
             .lightbox { display: none !important; }
+            .main-header { padding: 20px 15px; }
+            .logo { font-size: 24px; }
         }
     </style>
 </head>
 <body>
+
+    <header class="main-header">
+        <div class="logo">helgiforest</div>
+        <nav class="nav-links">
+            <a href="#" class="nav-item active">overview</a>
+            <a href="about.html" class="nav-item">about</a>
+        </nav>
+    </header>
 
     <div id="gallery-preloader">
         <div class="preloader-content">
@@ -156,52 +203,52 @@
         </div>
      </div>
 
- <div class="frauki-style-gallery" id="main-gallery">
-    <div class="m-item"><img src="images/691540F4-R1-00-37.jpg"></div>
-    <div class="m-item"><img src="images/691540F4-R1-07-30.jpg"></div>
-    <div class="m-item"><img src="images/691540F4-R1-30-7.jpg"></div>
-    <div class="m-item"><img src="images/A645250-R1-17-17.jpg"></div>
-    <div class="m-item"><img src="images/R1-06092-0030.jpg"></div>
-    <div class="m-item"><img src="images/691540K4-R1-06-30.jpg"></div>
-    <div class="m-item"><img src="images/R1-05764-002A.jpg"></div>
-    <div class="m-item"><img src="images/R1-05677-0026.jpg"></div>
-    <div class="m-item"><img src="images/691540K4-R1-05-31A.jpg"></div>
-    <div class="m-item"><img src="images/691540K4-R1-04-32A.jpg"></div>
+    <div class="frauki-style-gallery" id="main-gallery">
+        <div class="m-item"><img src="images/691540F4-R1-00-37.jpg"></div>
+        <div class="m-item"><img src="images/691540F4-R1-07-30.jpg"></div>
+        <div class="m-item"><img src="images/691540F4-R1-30-7.jpg"></div>
+        <div class="m-item"><img src="images/A645250-R1-17-17.jpg"></div>
+        <div class="m-item"><img src="images/R1-06092-0030.jpg"></div>
+        <div class="m-item"><img src="images/691540K4-R1-06-30.jpg"></div>
+        <div class="m-item"><img src="images/R1-05764-002A.jpg"></div>
+        <div class="m-item"><img src="images/R1-05677-0026.jpg"></div>
+        <div class="m-item"><img src="images/691540K4-R1-05-31A.jpg"></div>
+        <div class="m-item"><img src="images/691540K4-R1-04-32A.jpg"></div>
 
-    <div class="m-item"><img src="images/A645250-R1-29-29.jpg"></div>
-    <div class="m-item"><img src="images/IMG_0636.jpg"></div>
-    <div class="m-item"><img src="images/R1-05764-027A.jpg"></div>
-    <div class="m-item"><img src="images/R1-05764-025A.jpg"></div>
-    <div class="m-item"><img src="images/R1-06092-0022.jpg"></div>
-    <div class="m-item"><img src="images/A645250-R1-03-3.jpg"></div>
-    <div class="m-item"><img src="images/A645250-R1-06-6.jpg"></div>
-    <div class="m-item"><img src="images/R1-05764-011A.jpg"></div>
-    <div class="m-item"><img src="images/A646016-R1-09-27.jpg"></div>
-    <div class="m-item"><img src="images/R1-04862-0018.jpg"></div>
+        <div class="m-item"><img src="images/A645250-R1-29-29.jpg"></div>
+        <div class="m-item"><img src="images/IMG_0636.jpg"></div>
+        <div class="m-item"><img src="images/R1-05764-027A.jpg"></div>
+        <div class="m-item"><img src="images/R1-05764-025A.jpg"></div>
+        <div class="m-item"><img src="images/R1-06092-0022.jpg"></div>
+        <div class="m-item"><img src="images/A645250-R1-03-3.jpg"></div>
+        <div class="m-item"><img src="images/A645250-R1-06-6.jpg"></div>
+        <div class="m-item"><img src="images/R1-05764-011A.jpg"></div>
+        <div class="m-item"><img src="images/A646016-R1-09-27.jpg"></div>
+        <div class="m-item"><img src="images/R1-04862-0018.jpg"></div>
 
-    <div class="m-item"><img src="images/A645250-R1-09-9.jpg"></div>
-    <div class="m-item"><img src="images/R1-05677-0011.jpg"></div>
-    <div class="m-item"><img src="images/R1-04862-0032.jpg"></div>
-    <div class="m-item"><img src="images/A620782-R1-27-26.jpg"></div>
-    <div class="m-item"><img src="images/R1-05677-0020.jpg"></div>
-    <div class="m-item"><img src="images/A655518-R1-27-10.jpg"></div>
-    <div class="m-item"><img src="images/R1-05677-0027.jpg"></div>
-    <div class="m-item"><img src="images/R1-04862-0027.jpg"></div>
-    <div class="m-item"><img src="images/691540G-R1-24-8A.jpg"></div>
-    <div class="m-item"><img src="images/R1-05677-0001.jpg"></div>
-    <div class="m-item"><img src="images/R1-06092-0015.jpg"></div>
+        <div class="m-item"><img src="images/A645250-R1-09-9.jpg"></div>
+        <div class="m-item"><img src="images/R1-05677-0011.jpg"></div>
+        <div class="m-item"><img src="images/R1-04862-0032.jpg"></div>
+        <div class="m-item"><img src="images/A620782-R1-27-26.jpg"></div>
+        <div class="m-item"><img src="images/R1-05677-0020.jpg"></div>
+        <div class="m-item"><img src="images/A655518-R1-27-10.jpg"></div>
+        <div class="m-item"><img src="images/R1-05677-0027.jpg"></div>
+        <div class="m-item"><img src="images/R1-04862-0027.jpg"></div>
+        <div class="m-item"><img src="images/691540G-R1-24-8A.jpg"></div>
+        <div class="m-item"><img src="images/R1-05677-0001.jpg"></div>
+        <div class="m-item"><img src="images/R1-06092-0015.jpg"></div>
 
-    <div class="m-item"><img src="images/691540K4-R1-32-2A.jpg"></div>
-    <div class="m-item"><img src="images/A645250-R1-34-34.jpg"></div>
-    <div class="m-item"><img src="images/A620782-R1-28-27.jpg"></div>
-    <div class="m-item"><img src="images/691540K4-R1-11-25A.jpg"></div>
-    <div class="m-item"><img src="images/R1-06163-032A.jpg"></div>
-    <div class="m-item"><img src="images/R1-06163-014A.jpg"></div>
-    <div class="m-item"><img src="images/R1-05764-028A.jpg"></div>
-    <div class="m-item"><img src="images/R1-06092-0018.jpg"></div>
-    <div class="m-item"><img src="images/A687172-R1-12-25.jpg"></div>
-    <div class="m-item"><img src="images/R1-05677-0012.jpg"></div>
-</div>
+        <div class="m-item"><img src="images/691540K4-R1-32-2A.jpg"></div>
+        <div class="m-item"><img src="images/A645250-R1-34-34.jpg"></div>
+        <div class="m-item"><img src="images/A620782-R1-28-27.jpg"></div>
+        <div class="m-item"><img src="images/691540K4-R1-11-25A.jpg"></div>
+        <div class="m-item"><img src="images/R1-06163-032A.jpg"></div>
+        <div class="m-item"><img src="images/R1-06163-014A.jpg"></div>
+        <div class="m-item"><img src="images/R1-05764-028A.jpg"></div>
+        <div class="m-item"><img src="images/R1-06092-0018.jpg"></div>
+        <div class="m-item"><img src="images/A687172-R1-12-25.jpg"></div>
+        <div class="m-item"><img src="images/R1-05677-0012.jpg"></div>
+    </div>
 
     <div id="custom-lightbox" class="lightbox">
         <div id="lb-container"></div>
@@ -257,22 +304,13 @@
                 if (loadCount >= imgs.length) setTimeout(finishLoading, 800);
             }
 
-            // ЖЕСТКАЯ ОЧИСТКА БЕЗ НАЛОЖЕНИЯ
             function renderImage(index) {
                 currentIndex = index;
-                
-                // 1. Мгновенно удаляем всё старое из контейнера
                 lbContainer.innerHTML = '';
-                
-                // 2. Создаем новую картинку
                 const newImg = document.createElement('img');
                 newImg.className = 'lightbox-content';
                 newImg.src = imgs[currentIndex].src;
-                
-                // 3. Кладем в контейнер
                 lbContainer.appendChild(newImg);
-
-                // 4. Плавно проявляем через микро-таймаут
                 setTimeout(() => {
                     newImg.style.opacity = '1';
                 }, 10);
@@ -316,10 +354,3 @@
     </script>
 </body>
 </html>
-
-
-
-
-
-
-

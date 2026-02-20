@@ -52,14 +52,8 @@
             transition: opacity 0.2s ease;
         }
 
-        .nav-item:hover {
-            opacity: 1;
-        }
-
-        .nav-item.active {
-            border-bottom: 1.5px solid var(--text-color);
-            opacity: 1;
-        }
+        .nav-item:hover { opacity: 1; }
+        .nav-item.active { border-bottom: 1.5px solid var(--text-color); opacity: 1; }
 
         /* ПРЕЛОАДЕР */
         #gallery-preloader {
@@ -105,13 +99,33 @@
             transition: opacity 0.8s ease;
         }
 
-        /* --- CSS ИЗ SQUARESPACE --- */
+        /* --- ЭФФЕКТЫ ПРИ СКРОЛЛЕ (КАК В ABOUT) --- */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
         .m-item { 
             display: block; 
             margin-bottom: 15px; 
             break-inside: avoid; 
             cursor: pointer; 
             overflow: hidden !important; 
+            
+            /* Скрываем плитку изначально */
+            opacity: 0;
+            will-change: opacity, transform;
+        }
+
+        /* Класс, который вешает JS при скролле */
+        .m-item.reveal {
+            animation: fadeIn 1.2s ease-out forwards;
         }
 
         .m-item img { 
@@ -214,7 +228,6 @@
         <div class="m-item"><img src="images/R1-05677-0026.jpg"></div>
         <div class="m-item"><img src="images/691540K4-R1-05-31A.jpg"></div>
         <div class="m-item"><img src="images/691540K4-R1-04-32A.jpg"></div>
-
         <div class="m-item"><img src="images/A645250-R1-29-29.jpg"></div>
         <div class="m-item"><img src="images/IMG_0636.jpg"></div>
         <div class="m-item"><img src="images/R1-05764-027A.jpg"></div>
@@ -225,7 +238,6 @@
         <div class="m-item"><img src="images/R1-05764-011A.jpg"></div>
         <div class="m-item"><img src="images/A646016-R1-09-27.jpg"></div>
         <div class="m-item"><img src="images/R1-04862-0018.jpg"></div>
-
         <div class="m-item"><img src="images/A645250-R1-09-9.jpg"></div>
         <div class="m-item"><img src="images/R1-05677-0011.jpg"></div>
         <div class="m-item"><img src="images/R1-04862-0032.jpg"></div>
@@ -237,7 +249,6 @@
         <div class="m-item"><img src="images/691540G-R1-24-8A.jpg"></div>
         <div class="m-item"><img src="images/R1-05677-0001.jpg"></div>
         <div class="m-item"><img src="images/R1-06092-0015.jpg"></div>
-
         <div class="m-item"><img src="images/691540K4-R1-32-2A.jpg"></div>
         <div class="m-item"><img src="images/A645250-R1-34-34.jpg"></div>
         <div class="m-item"><img src="images/A620782-R1-28-27.jpg"></div>
@@ -282,12 +293,33 @@
                 }
             }, 120);
 
+            // --- НОВЫЙ СКРИПТ АНИМАЦИИ ПРИ СКРОЛЛЕ ---
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px' // Чтобы анимация срабатывала чуть раньше появления
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('reveal');
+                        observer.unobserve(entry.target); // Чтобы анимация не повторялась
+                    }
+                });
+            }, observerOptions);
+            // ---------------------------------------
+
             function finishLoading() {
                 clearInterval(flashInterval);
                 preloader.style.opacity = '0';
                 setTimeout(() => {
                     preloader.style.visibility = 'hidden';
                     gallery.style.opacity = '1';
+                    
+                    // Запускаем слежку за плиткой только после того как исчез прелоадер
+                    document.querySelectorAll('.m-item').forEach(el => {
+                        observer.observe(el);
+                    });
                 }, 600);
             }
 
@@ -354,4 +386,3 @@
     </script>
 </body>
 </html>
-

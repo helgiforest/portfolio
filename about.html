@@ -121,28 +121,6 @@
             }
             .logo { font-size: 24px; }
             .main-header { padding: 20px 15px; }
-                        /* Анимация появления */
-            @keyframes fadeIn {
-                from {
-                    opacity: 0;
-                    transform: translateY(10px); /* Небольшой сдвиг вверх для изящности */
-                }
-                to {
-                    opacity: 1;
-                    transform: translateY(0);
-                }
-            }
-            
-            /* Применяем анимацию к картинке и тексту */
-            .about-image-side img {
-                opacity: 0; /* Изначально скрываем */
-                animation: fadeIn 1.2s ease-out forwards; /* forwards оставит элемент видимым после анимации */
-            }
-            
-            .about-text-side {
-                opacity: 0;
-                animation: fadeIn 1.2s ease-out 0.3s forwards; /* 0.3s — задержка, чтобы текст пошел чуть позже фото */
-            }
         }
     </style>
 </head>

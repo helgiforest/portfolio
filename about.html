@@ -24,7 +24,7 @@
             line-height: 1.6;
         }
 
-        /* ШАПКА (такая же как на главной) */
+        /* ШАПКА */
         .main-header {
             display: flex;
             justify-content: space-between;
@@ -69,6 +69,10 @@
         .about-image-side {
             flex: 1;
             max-width: 50%;
+            /* Изначально скрыто для анимации */
+            opacity: 0;
+            transform: translateY(20px);
+            will-change: opacity, transform;
         }
 
         .about-image-side img {
@@ -80,8 +84,12 @@
 
         .about-text-side {
             flex: 1;
-            padding-top: 100px; /* Чтобы текст был чуть ниже начала фото */
+            padding-top: 100px;
             max-width: 450px;
+            /* Изначально скрыто для анимации */
+            opacity: 0;
+            transform: translateY(20px);
+            will-change: opacity, transform;
         }
 
         .about-text-side p {
@@ -107,6 +115,17 @@
 
         .contact-links a:hover {
             opacity: 0.5;
+        }
+
+        /* КЛАСС ДЛЯ ЗАПУСКА АНИМАЦИИ */
+        .reveal {
+            opacity: 1 !important;
+            transform: translateY(0) !important;
+            transition: opacity 1.2s ease-out, transform 1.2s ease-out;
+        }
+
+        .delay-1 {
+            transition-delay: 0.3s;
         }
 
         /* АДАПТИВ ДЛЯ МОБИЛОК */
@@ -135,11 +154,11 @@
     </header>
 
     <main class="about-container">
-        <div class="about-image-side">
+        <div class="about-image-side js-reveal">
             <img src="images/R1-04460-0003.jpg" alt="helgiforest">
         </div>
 
-        <div class="about-text-side">
+        <div class="about-text-side js-reveal delay-1">
             <p>welcome! 🐒 my name is Oleg.</p>
             <p>every photo you see in here is shot on film, because I love it! 🎞️</p>
             <p>aaaaand.. i don't edit them. 👌</p>
@@ -154,6 +173,27 @@
             </div>
         </div>
     </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const observerOptions = {
+                threshold: 0.1
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('reveal');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, observerOptions);
+
+            document.querySelectorAll('.js-reveal').forEach(el => {
+                observer.observe(el);
+            });
+        });
+    </script>
 
 </body>
 </html>

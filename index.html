@@ -24,7 +24,7 @@
             color: var(--text-color);
         }
 
-        /* --- СТИЛИ ШАПКИ --- */
+        /* --- ШАПКА --- */
         .main-header {
             display: flex;
             justify-content: space-between;
@@ -34,16 +34,8 @@
             box-sizing: border-box;
         }
 
-        .logo {
-            font-size: 32px;
-            letter-spacing: -0.02em;
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 30px;
-        }
-
+        .logo { font-size: 32px; letter-spacing: -0.02em; }
+        .nav-links { display: flex; gap: 30px; }
         .nav-item {
             text-decoration: none;
             color: var(--text-color);
@@ -51,7 +43,6 @@
             opacity: 0.8;
             transition: opacity 0.2s ease;
         }
-
         .nav-item:hover { opacity: 1; }
         .nav-item.active { border-bottom: 1.5px solid var(--text-color); opacity: 1; }
 
@@ -75,18 +66,8 @@
             gap: 20px;
         }
 
-        #preloader-img {
-            width: 200px; height: 200px;
-            object-fit: cover;
-            opacity: 0.9;
-        }
-
-        .preloader-text {
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.2em;
-            opacity: 0.5;
-        }
+        #preloader-img { width: 200px; height: 200px; object-fit: cover; opacity: 0.9; }
+        .preloader-text { font-size: 11px; text-transform: uppercase; letter-spacing: 0.2em; opacity: 0.5; }
 
         /* ГАЛЕРЕЯ */
         .frauki-style-gallery {
@@ -99,30 +80,14 @@
             transition: opacity 0.8s ease;
         }
 
-        /* --- ЭФФЕКТЫ ПРИ СКРОЛЛЕ --- */
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(12px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
         .m-item { 
             display: block; 
             margin-bottom: 15px; 
             break-inside: avoid; 
             cursor: pointer; 
-            overflow: hidden !important; 
-            opacity: 0;
-            will-change: opacity, transform;
-        }
-
-        .m-item.reveal {
-            animation: fadeIn 0.8s ease-out forwards;
+            overflow: hidden !important;
+            /* АНИМАЦИЯ УБРАНА: теперь элементы видимы сразу */
+            opacity: 1;
         }
 
         .m-item img { 
@@ -141,13 +106,8 @@
             opacity: 0.97 !important; 
         }
 
-        /* --- BACK TO TOP (Минимализм) --- */
-        .footer-nav {
-            display: flex;
-            justify-content: center;
-            padding: 20px 0 60px; /* Уменьшили верхний отступ, чтобы быть ближе к фото */
-        }
-
+        /* --- КНОПКА НАВЕРХ --- */
+        .footer-nav { display: flex; justify-content: center; padding: 20px 0 60px; }
         .back-to-top {
             font-size: 13px;
             text-transform: lowercase;
@@ -155,9 +115,7 @@
             cursor: pointer;
             opacity: 0.4;
             transition: opacity 0.3s ease;
-            position: relative;
         }
-
         .back-to-top:hover { opacity: 1; }
 
         /* ЛАЙТБОКС */
@@ -171,40 +129,18 @@
             justify-content: center;
             align-items: center;
         }
-        
-        #lb-container {
-            width: 90%;
-            height: 80vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
+        #lb-container { width: 90%; height: 80vh; display: flex; justify-content: center; align-items: center; }
         .lightbox-content { 
-            max-width: 100%; 
-            max-height: 100%; 
-            object-fit: contain; 
-            opacity: 0;
-            transition: opacity var(--transition-speed) ease-in-out;
+            max-width: 100%; max-height: 100%; object-fit: contain; 
+            opacity: 0; transition: opacity var(--transition-speed) ease-in-out;
         }
 
         .lb-controls-corner { 
-            position: absolute; 
-            bottom: 40px; 
-            right: 40px; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: flex-end; 
-            gap: 8px; 
-            z-index: 1010;
+            position: absolute; bottom: 40px; right: 40px; 
+            display: flex; flex-direction: column; align-items: flex-end; gap: 8px; z-index: 1010;
         }
         .lb-nav-group { display: flex; gap: 10px; align-items: center; }
-        .lb-text-btn { 
-            font-size: 13px; 
-            text-transform: lowercase; 
-            cursor: pointer; 
-            user-select: none;
-        }
+        .lb-text-btn { font-size: 13px; text-transform: lowercase; cursor: pointer; user-select: none; }
         .lb-text-btn:hover { opacity: 0.5; }
         .lb-separator { opacity: 0.3; }
 
@@ -231,7 +167,7 @@
             <img id="preloader-img" src="" alt="loading">
             <div class="preloader-text">loading project</div>
         </div>
-     </div>
+    </div>
 
     <div class="frauki-style-gallery" id="main-gallery">
         <div class="m-item"><img src="images/691540F4-R1-00-37.jpg"></div>
@@ -313,29 +249,13 @@
                 }
             }, 120);
 
-            const observerOptions = {
-                threshold: 0,
-                rootMargin: '0px 0px 250px 0px'
-            };
-
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('reveal');
-                        observer.unobserve(entry.target); 
-                    }
-                });
-            }, observerOptions);
-
             function finishLoading() {
                 clearInterval(flashInterval);
                 preloader.style.opacity = '0';
                 setTimeout(() => {
                     preloader.style.visibility = 'hidden';
                     gallery.style.opacity = '1';
-                    document.querySelectorAll('.m-item').forEach(el => {
-                        observer.observe(el);
-                    });
+                    // ЛОГИКА ОБСЕРВЕРА УДАЛЕНА
                 }, 600);
             }
 
@@ -357,6 +277,7 @@
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             };
 
+            // ЛАЙТБОКС (БЕЗ ИЗМЕНЕНИЙ)
             function renderImage(index) {
                 currentIndex = index;
                 lbContainer.innerHTML = '';
@@ -405,5 +326,3 @@
     </script>
 </body>
 </html>
-
-

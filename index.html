@@ -92,14 +92,24 @@
             width: 100%; 
             height: auto; 
             display: block; 
-            /* Оставляем только мягкий ховер */
-            transition: transform 1.2s cubic-bezier(0.15, 0, 0.2, 1), filter 0.8s ease;
+            
+            /* Плавность и аппаратное ускорение */
+            transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1), filter 0.5s ease;
+            
+            /* Убираем "топорность" и пикселизацию */
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            transform: translateZ(0); /* Принудительный запуск GPU */
             will-change: transform;
+            
+            /* Сглаживание при масштабировании */
+            image-rendering: -webkit-optimize-contrast; 
         }
-
+        
         .m-item:hover img {
-            transform: scale(1.02); 
-            filter: brightness(1.03) contrast(1.02); 
+            /* Не делаем слишком большой зум, 1.03 достаточно для эффекта */
+            transform: scale(1.03) translateZ(0); 
+            filter: brightness(1.05); 
         }
 
         /* --- КНОПКА НАВЕРХ --- */
@@ -325,3 +335,4 @@
     </script>
 </body>
 </html>
+

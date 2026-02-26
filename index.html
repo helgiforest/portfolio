@@ -24,7 +24,7 @@
             color: var(--text-color);
         }
 
-        /* --- ШАПКА --- */
+        /* --- СТИЛИ ШАПКИ --- */
         .main-header {
             display: flex;
             justify-content: space-between;
@@ -55,7 +55,7 @@
         .nav-item:hover { opacity: 1; }
         .nav-item.active { border-bottom: 1.5px solid var(--text-color); opacity: 1; }
 
-        /* --- ПРЕЛОАДЕР --- */
+        /* ПРЕЛОАДЕР */
         #gallery-preloader {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -88,7 +88,7 @@
             opacity: 0.5;
         }
 
-        /* --- ГАЛЕРЕЯ --- */
+        /* ГАЛЕРЕЯ */
         .frauki-style-gallery {
             line-height: 0;
             column-width: 450px;
@@ -99,6 +99,7 @@
             transition: opacity 0.8s ease;
         }
 
+        /* --- ЭФФЕКТЫ ПРИ СКРОЛЛЕ --- */
         @keyframes fadeIn {
             from {
                 opacity: 0;
@@ -117,7 +118,7 @@
             cursor: pointer; 
             overflow: hidden !important; 
             opacity: 0;
-            will-change: opacity, transform; /* Подсказка браузеру для плавности */
+            will-change: opacity, transform;
         }
 
         .m-item.reveal {
@@ -140,46 +141,26 @@
             opacity: 0.97 !important; 
         }
 
-        /* --- КНОПКА BACK TO TOP --- */
+        /* --- BACK TO TOP (Минимализм) --- */
         .footer-nav {
-            width: 100%;
-            padding: 80px 0 100px;
             display: flex;
             justify-content: center;
-            align-items: center;
+            padding: 20px 0 60px; /* Уменьшили верхний отступ, чтобы быть ближе к фото */
         }
 
         .back-to-top {
-            font-size: 14px;
+            font-size: 13px;
             text-transform: lowercase;
-            letter-spacing: 0.1em;
+            letter-spacing: 0.05em;
             cursor: pointer;
-            opacity: 0.5;
+            opacity: 0.4;
             transition: opacity 0.3s ease;
             position: relative;
-            padding-bottom: 4px;
-        }
-
-        .back-to-top::after {
-            content: '';
-            position: absolute;
-            width: 100%;
-            height: 1px;
-            bottom: 0;
-            left: 0;
-            background-color: var(--text-color);
-            transform: scaleX(0);
-            transform-origin: bottom right;
-            transition: transform 0.4s cubic-bezier(0.15, 0, 0.2, 1);
         }
 
         .back-to-top:hover { opacity: 1; }
-        .back-to-top:hover::after {
-            transform: scaleX(1);
-            transform-origin: bottom left;
-        }
 
-        /* --- ЛАЙТБОКС --- */
+        /* ЛАЙТБОКС */
         .lightbox {
             display: none;
             position: fixed;
@@ -297,7 +278,7 @@
     </div>
 
     <div class="footer-nav">
-        <span class="back-to-top" id="scrollToTop">back to top</span>
+        <div class="back-to-top" id="topBtn">back to top</div>
     </div>
 
     <div id="custom-lightbox" class="lightbox">
@@ -320,7 +301,6 @@
             const imgs = Array.from(document.querySelectorAll('.m-item img'));
             const lb = document.getElementById('custom-lightbox');
             const lbContainer = document.getElementById('lb-container');
-            const backToTopBtn = document.getElementById('scrollToTop');
             
             let loadCount = 0;
             let flashIndex = 0;
@@ -333,17 +313,15 @@
                 }
             }, 120);
 
-            // Опции наблюдателя: rootMargin 300px позволяет фото прогрузиться заранее
             const observerOptions = {
-                threshold: 0,
-                rootMargin: '0px 0px 300px 0px' 
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
             };
 
             const observer = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
                     if (entry.isIntersecting) {
                         entry.target.classList.add('reveal');
-                        // ГАРАНТИЯ: Перестаем следить за элементом, он остается видимым навсегда
                         observer.unobserve(entry.target); 
                     }
                 });
@@ -355,7 +333,6 @@
                 setTimeout(() => {
                     preloader.style.visibility = 'hidden';
                     gallery.style.opacity = '1';
-                    
                     document.querySelectorAll('.m-item').forEach(el => {
                         observer.observe(el);
                     });
@@ -375,14 +352,11 @@
                 if (loadCount >= imgs.length) setTimeout(finishLoading, 800);
             }
 
-            // Кнопка наверх
-            if (backToTopBtn) {
-                backToTopBtn.addEventListener('click', () => {
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                });
-            }
+            // КНОПКА НАВЕРХ
+            document.getElementById('topBtn').onclick = () => {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            };
 
-            // Лайтбокс
             function renderImage(index) {
                 currentIndex = index;
                 lbContainer.innerHTML = '';

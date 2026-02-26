@@ -80,35 +80,37 @@
             transition: opacity 0.8s ease;
         }
 
+        /* Контейнер-рамка, который обрезает всё лишнее */
         .m-item { 
             display: block; 
             margin-bottom: 15px; 
             break-inside: avoid; 
-            cursor: pointer;
-            /* Убрали прозрачность и анимации, чтобы не дергалось при скролле */
+            cursor: pointer; 
+            
+            /* Магия обрезки здесь */
+            overflow: hidden !important; 
+            position: relative; 
+            transform: translateZ(0); /* Помогает браузеру лучше обрабатывать границы */
         }
-
+        
+        /* Сама картинка */
         .m-item img { 
             width: 100%; 
             height: auto; 
             display: block; 
             
-            /* Плавность и аппаратное ускорение */
-            transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1), filter 0.5s ease;
+            /* Плавность и четкость */
+            transition: transform 0.9s cubic-bezier(0.25, 1, 0.5, 1), filter 0.6s ease;
             
-            /* Убираем "топорность" и пикселизацию */
+            /* Аппаратное ускорение для исключения "мыла" */
             backface-visibility: hidden;
             -webkit-backface-visibility: hidden;
-            transform: translateZ(0); /* Принудительный запуск GPU */
             will-change: transform;
-            
-            /* Сглаживание при масштабировании */
-            image-rendering: -webkit-optimize-contrast; 
         }
         
+        /* Зум происходит ВНУТРИ границ .m-item */
         .m-item:hover img {
-            /* Не делаем слишком большой зум, 1.03 достаточно для эффекта */
-            transform: scale(1.03) translateZ(0); 
+            transform: scale(1.08); /* Теперь можно даже чуть больше, будет красиво */
             filter: brightness(1.05); 
         }
 
@@ -335,4 +337,5 @@
     </script>
 </body>
 </html>
+
 

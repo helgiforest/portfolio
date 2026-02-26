@@ -76,7 +76,7 @@
             column-gap: 15px;
             padding: 15px;
             box-sizing: border-box;
-            opacity: 0; 
+            opacity: 0; /* Проявляется целиком через JS */
             transition: opacity 0.8s ease;
         }
 
@@ -84,26 +84,22 @@
             display: block; 
             margin-bottom: 15px; 
             break-inside: avoid; 
-            cursor: pointer; 
-            overflow: hidden !important;
-            /* АНИМАЦИЯ УБРАНА: теперь элементы видимы сразу */
-            opacity: 1;
+            cursor: pointer;
+            /* Убрали прозрачность и анимации, чтобы не дергалось при скролле */
         }
 
         .m-item img { 
             width: 100%; 
             height: auto; 
             display: block; 
-            transition: transform 1.2s cubic-bezier(0.15, 0, 0.2, 1), 
-                        filter 0.8s ease, 
-                        opacity 0.8s ease !important;
+            /* Оставляем только мягкий ховер */
+            transition: transform 1.2s cubic-bezier(0.15, 0, 0.2, 1), filter 0.8s ease;
             will-change: transform;
         }
 
         .m-item:hover img {
-            transform: scale(1.02) !important; 
-            filter: brightness(1.03) contrast(1.02) !important; 
-            opacity: 0.97 !important; 
+            transform: scale(1.02); 
+            filter: brightness(1.03) contrast(1.02); 
         }
 
         /* --- КНОПКА НАВЕРХ --- */
@@ -242,6 +238,7 @@
             let flashIndex = 0;
             let currentIndex = 0;
 
+            // Цикл картинок в прелоадере
             const flashInterval = setInterval(() => {
                 if(imgs.length > 0) {
                     preloaderImg.src = imgs[flashIndex].src;
@@ -249,16 +246,18 @@
                 }
             }, 120);
 
+            // Финальный показ галереи
             function finishLoading() {
                 clearInterval(flashInterval);
                 preloader.style.opacity = '0';
                 setTimeout(() => {
                     preloader.style.visibility = 'hidden';
-                    gallery.style.opacity = '1';
-                    // ЛОГИКА ОБСЕРВЕРА УДАЛЕНА
+                    gallery.style.opacity = '1'; 
+                    // ВСЯ ЛОГИКА ИНДИВИДУАЛЬНОГО ПОЯВЛЕНИЯ УДАЛЕНА
                 }, 600);
             }
 
+            // Проверка загрузки всех изображений
             imgs.forEach(img => {
                 if (img.complete) checkCount();
                 else {
@@ -269,7 +268,7 @@
 
             function checkCount() {
                 loadCount++;
-                if (loadCount >= imgs.length) setTimeout(finishLoading, 800);
+                if (loadCount >= imgs.length) setTimeout(finishLoading, 600);
             }
 
             // КНОПКА НАВЕРХ
@@ -277,7 +276,7 @@
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             };
 
-            // ЛАЙТБОКС (БЕЗ ИЗМЕНЕНИЙ)
+            // ЛАЙТБОКС
             function renderImage(index) {
                 currentIndex = index;
                 lbContainer.innerHTML = '';

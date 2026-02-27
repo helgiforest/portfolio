@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>about — helgiforest</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=New+Tegomin&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-color: #FAF7EF;
+            --text-color: #111;
+            --transition-speed: 0.8s;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            font-family: 'New Tegomin', serif;
+            color: var(--text-color);
+            line-height: 1.6;
+            /* Скрываем скролл до момента загрузки, если нужно */
+        }
+
+        /* ШАПКА */
+        .main-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 40px 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+            box-sizing: border-box;
+        }
+
+        .logo {
+            font-size: 32px;
+            letter-spacing: -0.02em;
+            text-decoration: none;
+            color: var(--text-color);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+        }
+
+        .nav-item {
+            text-decoration: none;
+            color: var(--text-color);
+            font-size: 16px;
+            opacity: 0.6;
+            transition: opacity 0.2s ease;
+        }
+
+        .nav-item:hover, .nav-item.active { opacity: 1; }
+        .nav-item.active { border-bottom: 1.5px solid var(--text-color); }
+
+        /* КОНТЕНТ */
+        .about-container {
+            display: flex;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px 60px 20px;
+            gap: 60px;
+            align-items: flex-start;
+            /* Начальное состояние для всей секции */
+            opacity: 0;
+            transition: opacity var(--transition-speed) ease;
+        }
+
+        .about-image-side {
+            flex: 1;
+            max-width: 50%;
+            transform: translateY(10px);
+            transition: transform var(--transition-speed) ease;
+        }
+
+        .about-image-side img {
+            width: 100%;
+            height: auto;
+            display: block;
+            object-fit: cover;
+        }
+
+        .about-text-side {
+            flex: 1;
+            padding-top: 60px;
+            max-width: 450px;
+            transform: translateY(15px);
+            transition: transform var(--transition-speed) ease 0.1s; /* Небольшая задержка для текста */
+        }
+
+        /* Когда страница загружена, добавляем этот класс через JS */
+        .is-loaded .about-container {
+            opacity: 1;
+        }
+        .is-loaded .about-image-side, 
+        .is-loaded .about-text-side {
+            transform: translateY(0);
+        }
+
+        .about-text-side p {
+            font-size: 18px;
+            margin-bottom: 25px;
+            letter-spacing: 0.01em;
+        }
+
+        .contact-links {
+            margin-top: 40px;
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .contact-links a {
+            color: var(--text-color);
+            text-decoration: none;
+            border-bottom: 1px solid rgba(17, 17, 17, 0.3);
+            padding-bottom: 2px;
+            font-size: 16px;
+            transition: border-color 0.3s, opacity 0.3s;
+        }
+
+        .contact-links a:hover {
+            border-bottom-color: var(--text-color);
+            opacity: 0.6;
+        }
+
+        /* АДАПТИВ */
+        @media screen and (max-width: 767px) {
+            .about-container {
+                flex-direction: column;
+                gap: 40px;
+                padding-top: 20px;
+            }
+            .about-image-side, .about-text-side {
+                max-width: 100%;
+                padding-top: 0;
+            }
+            .logo { font-size: 24px; }
+            .main-header { padding: 20px 15px; }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="main-header">
+        <a href="index.html" class="logo">helgiforest</a>
+        <nav class="nav-links">
+            <a href="index.html" class="nav-item">overview</a>
+            <a href="about.html" class="nav-item active">about</a>
+        </nav>
+    </header>
+
+    <main class="about-container" id="aboutContent">
+        <div class="about-image-side">
+            <img src="images/R1-04460-0003.jpg" alt="helgiforest" id="aboutImg">
+        </div>
+
+        <div class="about-text-side">
+            <p>welcome! 🐒 my name is Oleg.</p>
+            <p>every photo you see in here is shot on film, because I love it! 🎞️</p>
+            <p>aaaaand.. i don't edit them. ✌️</p>
+            <p>i am based in Moscow, Russia.</p>
+            
+            <p><strong>get in touch with me for:</strong> booking a photo session, development & printing sessions, sharing my hobbies, postcard prints exchange via mail, road trips & casual hangouts.</p>
+
+            <div class="contact-links">
+                <a href="https://t.me/helgiforest" target="_blank" rel="noopener">telegram</a>
+                <a href="mailto:helgiforest@gmail.com">email</a>
+                <a href="https://www.lomography.com/homes/helgiforest" target="_blank" rel="noopener">lomography</a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const img = document.getElementById('aboutImg');
+            
+            // Функция для финального "проявления" контента
+            function revealPage() {
+                // Добавляем класс к body, который запускает CSS-анимации
+                document.body.classList.add('is-loaded');
+            }
+
+            // Проверяем, загружена ли картинка
+            if (img.complete) {
+                // Если картинка уже в кэше, проявляем быстро
+                setTimeout(revealPage, 100);
+            } else {
+                // Если нет — ждем события load
+                img.addEventListener('load', revealPage);
+                // На случай ошибки загрузки, чтобы страница не осталась пустой
+                img.addEventListener('error', revealPage);
+            }
+            
+            // Запасной таймер (на случай очень медленного интернета)
+            setTimeout(revealPage, 3000);
+        });
+    </script>
+
+</body>
+</html>

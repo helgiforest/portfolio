@@ -82,7 +82,7 @@
             height: 300px; 
             object-fit: contain; 
             opacity: 0; /* Скрыта изначально */
-            transition: opacity 0.3s ease; /* Плавное проявление */
+            transition: opacity 0.5s ease; /* Плавное проявление */
         }
         /* Класс, который мы будем добавлять через JS */
         #preloader-img.loaded {
@@ -283,7 +283,7 @@
         const lb = document.getElementById('custom-lightbox');
         const lbContainer = document.getElementById('lb-container');
         
-        // 1. Сортировка галереи (оставляем твою)
+        // 1. Рандомная сортировка
         const items = Array.from(gallery.querySelectorAll('.m-item'));
         items.sort(() => Math.random() - 0.5);
         gallery.innerHTML = '';
@@ -292,47 +292,40 @@
         const imgs = Array.from(gallery.querySelectorAll('img'));
         let currentIndex = 0;
 
-        // 2. УМНЫЙ ПРЕЛОАДЕР
+        // 2. БЕСШОВНЫЙ ПРЕЛОАДЕР
         let flashIndex = 0;
         let imagesLoadedTotal = 0;
         const totalImagesCount = imgs.length;
 
-        // Функция плавной смены картинки в прелоадере
         const nextFlashImage = () => {
-            // Если всё загружено и прелоадер скрывается — стопаем
             if (preloader.style.visibility === 'hidden') return;
 
-            // Сначала плавно скрываем картинку (через CSS класс)
-            preloaderImg.classList.remove('loaded');
+            if (imgs.length > 0) {
+                const nextSrc = imgs[flashIndex].src;
+                
+                // Создаем "фантомную" картинку для предзагрузки
+                const imgLoader = new Image();
+                imgLoader.src = nextSrc;
+                
+                imgLoader.onload = () => {
+                    // Когда следующая фотка готова, просто меняем src
+                    // Она подменится мгновенно, так как уже в кеше
+                    preloaderImg.src = nextSrc;
+                    preloaderImg.classList.add('loaded');
+                };
 
-            setTimeout(() => {
-                if (imgs.length > 0) {
-                    // Берем следующую по очереди картинку из галереи
-                    const nextSrc = imgs[flashIndex].src;
-                    
-                    // Создаем временный объект в памяти, чтобы дождаться полной загрузки файла
-                    const tempImg = new Image();
-                    tempImg.src = nextSrc;
-                    
-                    tempImg.onload = () => {
-                        preloaderImg.src = nextSrc;
-                        preloaderImg.classList.add('loaded'); // Плавно показываем через CSS
-                    };
-
-                    flashIndex = (flashIndex + 1) % imgs.length;
-                }
-            }, 400); // Время на исчезновение старой картинки
+                flashIndex = (flashIndex + 1) % imgs.length;
+            }
         };
 
-        // Запускаем цикл смены картинок (чуть медленнее, чтобы глаз успевал зацепиться)
+        // Смена раз в 1.5 сек (можешь поставить 1000 для бодрости)
         const flashInterval = setInterval(nextFlashImage, 1500);
-        nextFlashImage(); // Запуск первого кадра сразу
+        nextFlashImage();
 
-        // 3. СЛЕЖКА ЗА ЗАГРУЗКОЙ ВСЕХ ФОТО
+        // 3. Контроль полной загрузки сайта
         const checkAllImagesLoaded = () => {
             imagesLoadedTotal++;
             if (imagesLoadedTotal >= totalImagesCount) {
-                // Все картинки на сайте реально загрузились
                 clearInterval(flashInterval);
                 
                 setTimeout(() => {
@@ -342,32 +335,28 @@
                         gallery.style.opacity = '1';
                         document.body.classList.add('is-loaded');
                     }, 600);
-                }, 500); // Даем досмотреть последнюю фотку в прелоадере
+                }, 800); 
             }
         };
 
-        // Навешиваем проверку на каждую картинку
         if (totalImagesCount > 0) {
             imgs.forEach(img => {
                 if (img.complete) {
                     checkAllImagesLoaded();
                 } else {
                     img.addEventListener('load', checkAllImagesLoaded);
-                    img.addEventListener('error', checkAllImagesLoaded); // Чтобы не зависло, если файл битый
+                    img.addEventListener('error', checkAllImagesLoaded);
                 }
             });
         } else {
-            // Если картинок вдруг нет вообще
             preloader.style.display = 'none';
         }
 
-        // --- ОСТАЛЬНАЯ ТВОЯ ЛОГИКА (Лайтбокс и кнопка) ---
-
+        // --- ЛАЙТБОКС (ТВОЙ ОРИГИНАЛЬНЫЙ) ---
         const showImage = (index) => {
             if (index < 0) index = imgs.length - 1;
             if (index >= imgs.length) index = 0;
             currentIndex = index;
-
             lbContainer.innerHTML = '';
             const img = new Image();
             img.className = 'lightbox-content';
@@ -412,6 +401,7 @@
 </script>
 </body>
 </html>
+
 
 
 

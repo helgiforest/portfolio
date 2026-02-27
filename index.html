@@ -80,37 +80,28 @@
             transition: opacity 0.8s ease;
         }
 
-        /* Контейнер-рамка, который обрезает всё лишнее */
         .m-item { 
             display: block; 
             margin-bottom: 15px; 
             break-inside: avoid; 
             cursor: pointer; 
-            
-            /* Магия обрезки здесь */
             overflow: hidden !important; 
             position: relative; 
-            transform: translateZ(0); /* Помогает браузеру лучше обрабатывать границы */
+            transform: translateZ(0);
         }
         
-        /* Сама картинка */
         .m-item img { 
             width: 100%; 
             height: auto; 
             display: block; 
-            
-            /* Плавность и четкость */
             transition: transform 0.9s cubic-bezier(0.25, 1, 0.5, 1), filter 0.9s ease;
-            
-            /* Аппаратное ускорение для исключения "мыла" */
             backface-visibility: hidden;
             -webkit-backface-visibility: hidden;
             will-change: transform;
         }
         
-        /* Зум происходит ВНУТРИ границ .m-item */
         .m-item:hover img {
-            transform: scale(1.04); /* Теперь можно даже чуть больше, будет красиво */
+            transform: scale(1.04); 
             filter: brightness(1.05); 
         }
 
@@ -246,6 +237,17 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const gallery = document.getElementById('main-gallery');
+            
+            // --- НОВЫЙ БЛОК: РАНДОМИЗАЦИЯ ПЕРЕД ЗАГРУЗКОЙ ---
+            const items = Array.from(gallery.querySelectorAll('.m-item'));
+            for (let i = items.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [items[i], items[j]] = [items[j], items[i]];
+            }
+            gallery.innerHTML = '';
+            items.forEach(item => gallery.appendChild(item));
+            // -----------------------------------------------
+
             const preloader = document.getElementById('gallery-preloader');
             const preloaderImg = document.getElementById('preloader-img');
             const imgs = Array.from(document.querySelectorAll('.m-item img'));
@@ -271,7 +273,6 @@
                 setTimeout(() => {
                     preloader.style.visibility = 'hidden';
                     gallery.style.opacity = '1'; 
-                    // ВСЯ ЛОГИКА ИНДИВИДУАЛЬНОГО ПОЯВЛЕНИЯ УДАЛЕНА
                 }, 600);
             }
 
@@ -343,10 +344,3 @@
     </script>
 </body>
 </html>
-
-
-
-
-
-
-

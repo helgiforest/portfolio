@@ -66,8 +66,16 @@
             gap: 20px;
         }
 
-        #preloader-img { width: 200px; height: 200px; object-fit: cover; opacity: 0.9; }
-        .preloader-text { font-size: 11px; text-transform: uppercase; letter-spacing: 0.2em; opacity: 0.5; }
+        /* Обновленный стиль прелоадера */
+        #preloader-img { 
+            width: 300px; 
+            height: 300px; 
+            /* contain гарантирует, что фото впишется целиком без обрезки */
+            object-fit: contain; 
+            opacity: 0.9; 
+            /* Добавляем плавный переход между картинками в прелоадере */
+            transition: opacity 0.1s ease-in-out;
+        }
 
         /* ГАЛЕРЕЯ */
         .frauki-style-gallery {
@@ -348,6 +356,7 @@
     </script>
 </body>
 </html>
+
 
 
 

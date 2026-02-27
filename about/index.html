@@ -13,7 +13,7 @@
         :root {
             --bg-color: #FAF7EF;
             --text-color: #111;
-            --transition-speed: 0.8s;
+            --transition-speed: 1.2s; /* Чуть медленнее для благородности */
         }
 
         body {
@@ -58,6 +58,7 @@
         .nav-item:hover, .nav-item.active { opacity: 1; }
         .nav-item.active { border-bottom: 1.5px solid var(--text-color); }
 
+        /* --- ЭФФЕКТЫ ПОЯВЛЕНИЯ --- */
         .about-container {
             display: flex;
             max-width: 1400px;
@@ -65,19 +66,22 @@
             padding: 0 20px 60px 20px;
             gap: 60px;
             align-items: flex-start;
+            
+            /* Начальное состояние: невидимый и чуть ниже */
             opacity: 0;
-            transition: opacity var(--transition-speed) ease;
+            transform: translateY(20px);
+            transition: opacity var(--transition-speed) ease, transform var(--transition-speed) cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        .is-loaded .about-container {
+        /* Когда страница загружена, плавно проявляем контейнер */
+        body.is-loaded .about-container {
             opacity: 1;
+            transform: translateY(0);
         }
 
         .about-image-side {
             flex: 1;
             max-width: 50%;
-            transform: translateY(10px);
-            transition: transform var(--transition-speed) ease;
         }
 
         .about-image-side img {
@@ -85,18 +89,22 @@
             height: auto;
             display: block;
             object-fit: cover;
+            /* Легкий зум при появлении как доп. эффект (по желанию) */
+            transition: transform 1.5s ease;
         }
 
         .about-text-side {
             flex: 1;
             padding-top: 60px;
             max-width: 450px;
-            transform: translateY(15px);
-            transition: transform var(--transition-speed) ease 0.1s;
+            /* Дополнительная задержка для текста, чтобы он шел после фото */
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 1s ease 0.4s, transform 1s ease 0.4s;
         }
 
-        .is-loaded .about-image-side, 
-        .is-loaded .about-text-side {
+        body.is-loaded .about-text-side {
+            opacity: 1;
             transform: translateY(0);
         }
 
@@ -135,12 +143,12 @@
         }
     </style>
 </head>
-<body class="is-loaded"> 
+<body> 
     <header class="main-header">
-        <a href="../index.html" class="logo">helgiforest</a>
+        <a href="/" class="logo">helgiforest</a>
         <nav class="nav-links">
-            <a href="../index.html" class="nav-item">overview</a>
-            <a href="index.html" class="nav-item active">about</a>
+            <a href="/" class="nav-item">overview</a>
+            <a href="/about" class="nav-item active">about</a>
         </nav>
     </header>
 
@@ -164,5 +172,12 @@
             </div>
         </div>
     </main>
+
+    <script>
+        // Ждем, пока загрузится всё (включая тяжелую картинку)
+        window.addEventListener('load', () => {
+            document.body.classList.add('is-loaded');
+        });
+    </script>
 </body>
 </html>

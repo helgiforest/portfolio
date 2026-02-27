@@ -23,17 +23,8 @@
             font-family: 'New Tegomin', serif;
             color: var(--text-color);
             line-height: 1.6;
-            /* Плавное проявление всего контента */
-            opacity: 0;
-            transition: opacity 0.5s ease;
         }
 
-        /* Когда JS сработает, страница плавно появится */
-        body.is-loaded {
-            opacity: 1;
-        }
-
-        /* ШАПКА */
         .main-header {
             display: flex;
             justify-content: space-between;
@@ -75,15 +66,21 @@
             padding: 0 20px 60px 20px;
             gap: 60px;
             align-items: flex-start;
+            /* Делаем плавное появление */
+            opacity: 0;
+            transition: opacity var(--transition-speed) ease;
+        }
+
+        /* Когда класс добавлен, всё плавно проявляется */
+        .is-loaded .about-container {
+            opacity: 1;
         }
 
         .about-image-side {
             flex: 1;
             max-width: 50%;
-            /* Начальное смещение для анимации */
-            transform: translateY(20px);
-            opacity: 0;
-            transition: transform var(--transition-speed) ease, opacity var(--transition-speed) ease;
+            transform: translateY(10px);
+            transition: transform var(--transition-speed) ease;
         }
 
         .about-image-side img {
@@ -91,23 +88,20 @@
             height: auto;
             display: block;
             object-fit: cover;
+            background-color: #eee; /* Заглушка, пока фото грузится */
         }
 
         .about-text-side {
             flex: 1;
             padding-top: 60px;
             max-width: 450px;
-            /* Начальное смещение для анимации */
-            transform: translateY(25px);
-            opacity: 0;
-            transition: transform var(--transition-speed) ease 0.2s, opacity var(--transition-speed) ease 0.2s;
+            transform: translateY(15px);
+            transition: transform var(--transition-speed) ease 0.1s;
         }
 
-        /* Анимация при загрузке */
         .is-loaded .about-image-side, 
         .is-loaded .about-text-side {
             transform: translateY(0);
-            opacity: 1;
         }
 
         .about-text-side p {
@@ -137,7 +131,6 @@
             opacity: 0.6;
         }
 
-        /* АДАПТИВ */
         @media screen and (max-width: 767px) {
             .about-container {
                 flex-direction: column;
@@ -150,14 +143,11 @@
             }
             .logo { font-size: 24px; }
             .main-header { padding: 20px 15px; }
-            .nav-links { gap: 15px; }
         }
     </style>
 </head>
-<body>
-
-    <header class="main-header">
-        <a href="/" class="logo">helgiforest</a>
+<body class="is-loaded"> <header class="main-header">
+        <a href="index.html" class="logo">helgiforest</a>
         <nav class="nav-links">
             <a href="index.html" class="nav-item">overview</a>
             <a href="about.html" class="nav-item active">about</a>
@@ -184,18 +174,6 @@
             </div>
         </div>
     </main>
-
-    <script>
-        window.addEventListener('load', () => {
-            // Используем событие load для всего окна, чтобы дождаться картинки
-            document.body.classList.add('is-loaded');
-        });
-
-        // Запасной вариант, если картинка не грузится
-        setTimeout(() => {
-            document.body.classList.add('is-loaded');
-        }, 2000);
-    </script>
 
 </body>
 </html>

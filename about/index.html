@@ -58,7 +58,6 @@
         .nav-item:hover, .nav-item.active { opacity: 1; }
         .nav-item.active { border-bottom: 1.5px solid var(--text-color); }
 
-        /* КОНТЕНТ */
         .about-container {
             display: flex;
             max-width: 1400px;
@@ -66,12 +65,10 @@
             padding: 0 20px 60px 20px;
             gap: 60px;
             align-items: flex-start;
-            /* Делаем плавное появление */
             opacity: 0;
             transition: opacity var(--transition-speed) ease;
         }
 
-        /* Когда класс добавлен, всё плавно проявляется */
         .is-loaded .about-container {
             opacity: 1;
         }
@@ -88,7 +85,6 @@
             height: auto;
             display: block;
             object-fit: cover;
-            background-color: #eee; /* Заглушка, пока фото грузится */
         }
 
         .about-text-side {
@@ -132,31 +128,25 @@
         }
 
         @media screen and (max-width: 767px) {
-            .about-container {
-                flex-direction: column;
-                gap: 40px;
-                padding-top: 20px;
-            }
-            .about-image-side, .about-text-side {
-                max-width: 100%;
-                padding-top: 0;
-            }
+            .about-container { flex-direction: column; gap: 40px; padding-top: 20px; }
+            .about-image-side, .about-text-side { max-width: 100%; padding-top: 0; }
             .logo { font-size: 24px; }
             .main-header { padding: 20px 15px; }
         }
     </style>
 </head>
-<body class="is-loaded"> <header class="main-header">
-        <a href="index.html" class="logo">helgiforest</a>
+<body class="is-loaded"> 
+    <header class="main-header">
+        <a href="../index.html" class="logo">helgiforest</a>
         <nav class="nav-links">
-            <a href="index.html" class="nav-item">overview</a>
-            <a href="about.html" class="nav-item active">about</a>
+            <a href="../index.html" class="nav-item">overview</a>
+            <a href="index.html" class="nav-item active">about</a>
         </nav>
     </header>
 
     <main class="about-container" id="aboutContent">
         <div class="about-image-side">
-            <img src="images/R1-04460-0003.jpg" alt="helgiforest" id="aboutImg">
+            <img src="../images/R1-04460-0003.jpg" alt="helgiforest" id="aboutImg">
         </div>
 
         <div class="about-text-side">
@@ -174,6 +164,5 @@
             </div>
         </div>
     </main>
-
 </body>
 </html>

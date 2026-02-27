@@ -26,6 +26,7 @@
             -webkit-font-smoothing: antialiased;
         }
 
+        /* --- ШАПКА --- */
         .main-header {
             display: flex;
             justify-content: space-between;
@@ -36,14 +37,15 @@
             box-sizing: border-box;
         }
 
-        /* Исправил логотип, чтобы он был ссылкой и имел стиль */
+        /* Поправил стиль лого, чтобы он не был мелким синим текстом */
         .logo { 
             font-size: 32px; 
             letter-spacing: -0.02em; 
             text-decoration: none; 
             color: var(--text-color);
+            cursor: pointer;
         }
-
+        
         .nav-links { display: flex; gap: 30px; }
         .nav-item {
             text-decoration: none;
@@ -55,55 +57,115 @@
         .nav-item:hover, .nav-item.active { opacity: 1; }
         .nav-item.active { border-bottom: 1.5px solid var(--text-color); }
 
+        /* --- ПРЕЛОАДЕР --- */
         #gallery-preloader {
-            position: fixed; inset: 0;
+            position: fixed;
+            inset: 0;
             background-color: var(--bg-color);
             z-index: 10000;
-            display: flex; justify-content: center; align-items: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             transition: opacity 0.6s ease, visibility 0.6s;
         }
 
         .preloader-content {
-            text-align: center; display: flex; flex-direction: column; align-items: center; gap: 20px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
         }
 
-        #preloader-img { width: 300px; height: 300px; object-fit: contain; opacity: 0.9; }
+        #preloader-img { 
+            width: 300px; 
+            height: 300px; 
+            object-fit: contain; 
+            opacity: 0.9;
+        }
 
+        /* --- ГАЛЕРЕЯ --- */
         .frauki-style-gallery {
-            column-width: 400px; column-gap: var(--gallery-gap);
-            padding: var(--gallery-gap); max-width: 1600px; margin: 0 auto;
-            opacity: 0; transition: opacity 1s ease;
+            column-width: 400px;
+            column-gap: var(--gallery-gap);
+            padding: var(--gallery-gap);
+            max-width: 1600px;
+            margin: 0 auto;
+            opacity: 0;
+            transition: opacity 1s ease;
         }
 
         .m-item { 
-            display: block; margin-bottom: var(--gallery-gap); 
-            break-inside: avoid; cursor: pointer; overflow: hidden; 
-            background-color: #eee;
+            display: block; 
+            margin-bottom: var(--gallery-gap); 
+            break-inside: avoid; 
+            cursor: pointer; 
+            overflow: hidden; 
+            background-color: #eee; 
         }
         
         .m-item img { 
-            width: 100%; height: auto; display: block; 
+            width: 100%; 
+            height: auto; 
+            display: block; 
             transition: transform 1.2s cubic-bezier(0.2, 0.5, 0.2, 1), filter 0.8s ease; 
         }
 
-        .m-item:hover img { transform: scale(1.03); filter: brightness(1.05); }
+        .m-item:hover img { 
+            transform: scale(1.03); 
+            filter: brightness(1.05); 
+        }
 
+        /* --- ФУТЕР --- */
         .footer-nav { display: flex; justify-content: center; padding: 40px 0 80px; }
         .back-to-top {
-            font-size: 13px; text-transform: lowercase; letter-spacing: 0.05em;
-            cursor: pointer; opacity: 0.4; transition: opacity 0.3s ease;
+            font-size: 13px;
+            text-transform: lowercase;
+            letter-spacing: 0.05em;
+            cursor: pointer;
+            opacity: 0.4;
+            transition: opacity 0.3s ease;
         }
         .back-to-top:hover { opacity: 1; }
 
+        /* --- ЛАЙТБОКС --- */
         .lightbox {
-            display: none; position: fixed; inset: 0; z-index: 10001;
-            background-color: var(--bg-color); flex-direction: column;
-            justify-content: center; align-items: center;
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 10001;
+            background-color: var(--bg-color);
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
         }
         
-        #lb-container { width: 90%; height: 85vh; display: flex; justify-content: center; align-items: center; }
-        .lightbox-content { max-width: 100%; max-height: 100%; object-fit: contain; opacity: 0; transition: opacity 0.3s ease-in-out; }
-        .lb-controls-corner { position: absolute; bottom: 40px; right: 40px; display: flex; flex-direction: column; align-items: flex-end; gap: 12px; }
+        #lb-container { 
+            width: 90%; 
+            height: 85vh; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+        }
+
+        .lightbox-content { 
+            max-width: 100%; 
+            max-height: 100%; 
+            object-fit: contain; 
+            opacity: 0; 
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        .lb-controls-corner { 
+            position: absolute; 
+            bottom: 40px; 
+            right: 40px; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: flex-end; 
+            gap: 12px; 
+        }
+
         .lb-nav-group { display: flex; gap: 15px; align-items: center; }
         .lb-text-btn { font-size: 14px; text-transform: lowercase; cursor: pointer; user-select: none; }
         .lb-text-btn:hover { opacity: 0.5; }
@@ -188,6 +250,18 @@
         <div class="back-to-top" id="topBtn">back to top</div>
     </footer>
 
+    <div id="custom-lightbox" class="lightbox">
+        <div id="lb-container"></div>
+        <div class="lb-controls-corner">
+            <div class="lb-nav-group">
+                <div class="lb-text-btn" id="lb-prev">prev</div>
+                <span class="lb-separator">/</span>
+                <div class="lb-text-btn" id="lb-next">next</div>
+            </div>
+            <div class="lb-text-btn" id="lb-close">show thumbnails</div>
+        </div>
+    </div>
+
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const gallery = document.getElementById('main-gallery');
@@ -225,6 +299,7 @@
                 if (index < 0) index = imgs.length - 1;
                 if (index >= imgs.length) index = 0;
                 currentIndex = index;
+
                 lbContainer.innerHTML = '';
                 const img = new Image();
                 img.className = 'lightbox-content';

@@ -81,6 +81,11 @@
             width: 300px; 
             height: 300px; 
             object-fit: contain; 
+            opacity: 0; /* Скрыта изначально */
+            transition: opacity 0.3s ease; /* Плавное проявление */
+        }
+        /* Класс, который мы будем добавлять через JS */
+        #preloader-img.loaded {
             opacity: 1;
         }
 
@@ -270,88 +275,144 @@
         </div>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const gallery = document.getElementById('main-gallery');
-            const preloader = document.getElementById('gallery-preloader');
-            const preloaderImg = document.getElementById('preloader-img');
-            const lb = document.getElementById('custom-lightbox');
-            const lbContainer = document.getElementById('lb-container');
-            
-            const items = Array.from(gallery.querySelectorAll('.m-item'));
-            items.sort(() => Math.random() - 0.5);
-            gallery.innerHTML = '';
-            items.forEach(item => gallery.appendChild(item));
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const gallery = document.getElementById('main-gallery');
+        const preloader = document.getElementById('gallery-preloader');
+        const preloaderImg = document.getElementById('preloader-img');
+        const lb = document.getElementById('custom-lightbox');
+        const lbContainer = document.getElementById('lb-container');
+        
+        // 1. Сортировка галереи (оставляем твою)
+        const items = Array.from(gallery.querySelectorAll('.m-item'));
+        items.sort(() => Math.random() - 0.5);
+        gallery.innerHTML = '';
+        items.forEach(item => gallery.appendChild(item));
 
-            const imgs = Array.from(gallery.querySelectorAll('img'));
-            let currentIndex = 0;
+        const imgs = Array.from(gallery.querySelectorAll('img'));
+        let currentIndex = 0;
 
-            let flashIndex = 0;
-            const flashInterval = setInterval(() => {
+        // 2. УМНЫЙ ПРЕЛОАДЕР
+        let flashIndex = 0;
+        let imagesLoadedTotal = 0;
+        const totalImagesCount = imgs.length;
+
+        // Функция плавной смены картинки в прелоадере
+        const nextFlashImage = () => {
+            // Если всё загружено и прелоадер скрывается — стопаем
+            if (preloader.style.visibility === 'hidden') return;
+
+            // Сначала плавно скрываем картинку (через CSS класс)
+            preloaderImg.classList.remove('loaded');
+
+            setTimeout(() => {
                 if (imgs.length > 0) {
-                    preloaderImg.src = imgs[flashIndex].src;
+                    // Берем следующую по очереди картинку из галереи
+                    const nextSrc = imgs[flashIndex].src;
+                    
+                    // Создаем временный объект в памяти, чтобы дождаться полной загрузки файла
+                    const tempImg = new Image();
+                    tempImg.src = nextSrc;
+                    
+                    tempImg.onload = () => {
+                        preloaderImg.src = nextSrc;
+                        preloaderImg.classList.add('loaded'); // Плавно показываем через CSS
+                    };
+
                     flashIndex = (flashIndex + 1) % imgs.length;
                 }
-            }, 150);
+            }, 400); // Время на исчезновение старой картинки
+        };
 
-            window.addEventListener('load', () => {
+        // Запускаем цикл смены картинок (чуть медленнее, чтобы глаз успевал зацепиться)
+        const flashInterval = setInterval(nextFlashImage, 1500);
+        nextFlashImage(); // Запуск первого кадра сразу
+
+        // 3. СЛЕЖКА ЗА ЗАГРУЗКОЙ ВСЕХ ФОТО
+        const checkAllImagesLoaded = () => {
+            imagesLoadedTotal++;
+            if (imagesLoadedTotal >= totalImagesCount) {
+                // Все картинки на сайте реально загрузились
                 clearInterval(flashInterval);
-                preloader.style.opacity = '0';
+                
                 setTimeout(() => {
-                    preloader.style.visibility = 'hidden';
-                    gallery.style.opacity = '1';
-                }, 600);
-            });
+                    preloader.style.opacity = '0';
+                    setTimeout(() => {
+                        preloader.style.visibility = 'hidden';
+                        gallery.style.opacity = '1';
+                        document.body.classList.add('is-loaded');
+                    }, 600);
+                }, 500); // Даем досмотреть последнюю фотку в прелоадере
+            }
+        };
 
-            const showImage = (index) => {
-                if (index < 0) index = imgs.length - 1;
-                if (index >= imgs.length) index = 0;
-                currentIndex = index;
-
-                lbContainer.innerHTML = '';
-                const img = new Image();
-                img.className = 'lightbox-content';
-                img.src = imgs[currentIndex].src;
-                img.onload = () => img.style.opacity = '1';
-                lbContainer.appendChild(img);
-            };
-
-            const closeLightbox = () => {
-                lb.style.display = 'none';
-                document.body.style.overflow = '';
-                lbContainer.innerHTML = '';
-            };
-
-            gallery.addEventListener('click', (e) => {
-                const item = e.target.closest('.m-item');
-                if (item && window.innerWidth > 768) {
-                    const clickedImg = item.querySelector('img');
-                    currentIndex = imgs.indexOf(clickedImg);
-                    lb.style.display = 'flex';
-                    document.body.style.overflow = 'hidden';
-                    showImage(currentIndex);
+        // Навешиваем проверку на каждую картинку
+        if (totalImagesCount > 0) {
+            imgs.forEach(img => {
+                if (img.complete) {
+                    checkAllImagesLoaded();
+                } else {
+                    img.addEventListener('load', checkAllImagesLoaded);
+                    img.addEventListener('error', checkAllImagesLoaded); // Чтобы не зависло, если файл битый
                 }
             });
+        } else {
+            // Если картинок вдруг нет вообще
+            preloader.style.display = 'none';
+        }
 
-            document.getElementById('lb-next').onclick = (e) => { e.stopPropagation(); showImage(currentIndex + 1); };
-            document.getElementById('lb-prev').onclick = (e) => { e.stopPropagation(); showImage(currentIndex - 1); };
-            document.getElementById('lb-close').onclick = closeLightbox;
-            lb.onclick = (e) => { if (e.target === lb || e.target === lbContainer) closeLightbox(); };
+        // --- ОСТАЛЬНАЯ ТВОЯ ЛОГИКА (Лайтбокс и кнопка) ---
 
-            document.addEventListener('keydown', (e) => {
-                if (lb.style.display !== 'flex') return;
-                if (e.key === 'ArrowRight') showImage(currentIndex + 1);
-                if (e.key === 'ArrowLeft') showImage(currentIndex - 1);
-                if (e.key === 'Escape') closeLightbox();
-            });
+        const showImage = (index) => {
+            if (index < 0) index = imgs.length - 1;
+            if (index >= imgs.length) index = 0;
+            currentIndex = index;
 
-            document.getElementById('topBtn').onclick = () => {
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            };
+            lbContainer.innerHTML = '';
+            const img = new Image();
+            img.className = 'lightbox-content';
+            img.src = imgs[currentIndex].src;
+            img.onload = () => img.style.opacity = '1';
+            lbContainer.appendChild(img);
+        };
+
+        const closeLightbox = () => {
+            lb.style.display = 'none';
+            document.body.style.overflow = '';
+            lbContainer.innerHTML = '';
+        };
+
+        gallery.addEventListener('click', (e) => {
+            const item = e.target.closest('.m-item');
+            if (item && window.innerWidth > 768) {
+                const clickedImg = item.querySelector('img');
+                currentIndex = imgs.indexOf(clickedImg);
+                lb.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+                showImage(currentIndex);
+            }
         });
-    </script>
+
+        document.getElementById('lb-next').onclick = (e) => { e.stopPropagation(); showImage(currentIndex + 1); };
+        document.getElementById('lb-prev').onclick = (e) => { e.stopPropagation(); showImage(currentIndex - 1); };
+        document.getElementById('lb-close').onclick = closeLightbox;
+        lb.onclick = (e) => { if (e.target === lb || e.target === lbContainer) closeLightbox(); };
+
+        document.addEventListener('keydown', (e) => {
+            if (lb.style.display !== 'flex') return;
+            if (e.key === 'ArrowRight') showImage(currentIndex + 1);
+            if (e.key === 'ArrowLeft') showImage(currentIndex - 1);
+            if (e.key === 'Escape') closeLightbox();
+        });
+
+        document.getElementById('topBtn').onclick = () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+    });
+</script>
 </body>
 </html>
+
 
 
 

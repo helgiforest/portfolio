@@ -103,15 +103,25 @@
             width: 100%; 
             height: auto; 
             display: block; 
-            
-            /* Увеличиваем время до 1.5s и используем очень мягкую кривую */
-            transition: transform 1.5s cubic-bezier(0.2, 0.5, 0.2, 1), filter 1.5s ease;
+            transition: transform 1.5s cubic-bezier(0.2, 0.5, 0.2, 1);
+            will-change: transform;
         }
         
-        /* Зум при наведении — делаем его чуть глубже, но медленнее */
+        .m-item::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: rgba(255,255,255,0);
+            transition: background 1.5s ease;
+            pointer-events: none;
+        }
+        
         .m-item:hover img {
-            transform: scale(1.04); /* Чуть больше масштаб для эффекта "погружения" */
-            filter: brightness(1.08); /* Легкое осветление */
+            transform: scale(1.04);
+        }
+        
+        .m-item:hover::after {
+            background: rgba(255,255,255,0.06);
         }
 
         /* --- КНОПКА НАВЕРХ --- */
@@ -352,6 +362,7 @@
     </script>
 </body>
 </html>
+
 
 
 

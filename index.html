@@ -107,10 +107,7 @@
             /* Увеличиваем время до 1.5s и используем очень мягкую кривую */
             transition: transform 1.5s cubic-bezier(0.2, 0.5, 0.2, 1), filter 1.5s ease;
             
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
-            will-change: transform;
-        }
+
         
         /* Зум при наведении — делаем его чуть глубже, но медленнее */
         .m-item:hover img {
@@ -356,6 +353,7 @@
     </script>
 </body>
 </html>
+
 
 
 

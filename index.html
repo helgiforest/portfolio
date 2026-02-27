@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>helgiforest</title>
+    <title>helgiforest | Portfolio</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,7 +13,8 @@
         :root {
             --bg-color: #FAF7EF;
             --text-color: #111;
-            --transition-speed: 0.15s;
+            --transition-speed: 0.2s;
+            --gallery-gap: 15px;
         }
 
         body {
@@ -22,6 +23,7 @@
             background-color: var(--bg-color);
             font-family: 'New Tegomin', serif;
             color: var(--text-color);
+            -webkit-font-smoothing: antialiased;
         }
 
         /* --- ШАПКА --- */
@@ -29,29 +31,30 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 40px 20px 20px 20px;
-            max-width: 100%;
+            padding: 40px 20px;
+            max-width: 1400px;
+            margin: 0 auto;
             box-sizing: border-box;
         }
 
-        .logo { font-size: 32px; letter-spacing: -0.02em; }
+        .logo { font-size: 32px; letter-spacing: -0.02em; cursor: default; }
         .nav-links { display: flex; gap: 30px; }
         .nav-item {
             text-decoration: none;
             color: var(--text-color);
             font-size: 16px;
-            opacity: 0.8;
-            transition: opacity 0.2s ease;
+            opacity: 0.6;
+            transition: opacity var(--transition-speed) ease;
         }
-        .nav-item:hover { opacity: 1; }
-        .nav-item.active { border-bottom: 1.5px solid var(--text-color); opacity: 1; }
+        .nav-item:hover, .nav-item.active { opacity: 1; }
+        .nav-item.active { border-bottom: 1.5px solid var(--text-color); }
 
-        /* ПРЕЛОАДЕР */
+        /* --- ПРЕЛОАДЕР --- */
         #gallery-preloader {
             position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
+            inset: 0;
             background-color: var(--bg-color);
-            z-index: 1000000;
+            z-index: 10000;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -66,66 +69,47 @@
             gap: 20px;
         }
 
-        /* Обновленный стиль прелоадера */
         #preloader-img { 
             width: 300px; 
             height: 300px; 
-            /* contain гарантирует, что фото впишется целиком без обрезки */
             object-fit: contain; 
-            opacity: 0.9; 
-            /* Добавляем плавный переход между картинками в прелоадере */
-            transition: opacity 0.1s ease-in-out;
+            opacity: 0.9;
         }
 
-        /* ГАЛЕРЕЯ */
+        /* --- ГАЛЕРЕЯ --- */
         .frauki-style-gallery {
-            line-height: 0;
-            column-width: 450px;
-            column-gap: 15px;
-            padding: 15px;
-            box-sizing: border-box;
-            opacity: 0; /* Проявляется целиком через JS */
-            transition: opacity 0.8s ease;
+            column-width: 400px;
+            column-gap: var(--gallery-gap);
+            padding: var(--gallery-gap);
+            max-width: 1600px;
+            margin: 0 auto;
+            opacity: 0;
+            transition: opacity 1s ease;
         }
 
         .m-item { 
             display: block; 
-            margin-bottom: 15px; 
+            margin-bottom: var(--gallery-gap); 
             break-inside: avoid; 
             cursor: pointer; 
-            overflow: hidden !important; 
-            position: relative; 
-            transform: translateZ(0);
+            overflow: hidden; 
+            background-color: #eee; /* Плейсхолдер до загрузки */
         }
         
-/* Сама картинка — настраиваем плавность */
         .m-item img { 
             width: 100%; 
             height: auto; 
             display: block; 
-            transition: transform 1.5s cubic-bezier(0.2, 0.5, 0.2, 1);
-            will-change: transform;
-        }
-        
-        .m-item::after {
-            content: "";
-            position: absolute;
-            inset: 0;
-            background: rgba(255,255,255,0);
-            transition: background 1.5s ease;
-            pointer-events: none;
-        }
-        
-        .m-item:hover img {
-            transform: scale(1.04);
-        }
-        
-        .m-item:hover::after {
-            background: rgba(255,255,255,0.06);
+            transition: transform 1.2s cubic-bezier(0.2, 0.5, 0.2, 1), filter 0.8s ease; 
         }
 
-        /* --- КНОПКА НАВЕРХ --- */
-        .footer-nav { display: flex; justify-content: center; padding: 20px 0 60px; }
+        .m-item:hover img { 
+            transform: scale(1.05); 
+            filter: brightness(1.05); 
+        }
+
+        /* --- ФУТЕР --- */
+        .footer-nav { display: flex; justify-content: center; padding: 40px 0 80px; }
         .back-to-top {
             font-size: 13px;
             text-transform: lowercase;
@@ -136,37 +120,56 @@
         }
         .back-to-top:hover { opacity: 1; }
 
-        /* ЛАЙТБОКС */
+        /* --- ЛАЙТБОКС --- */
         .lightbox {
             display: none;
             position: fixed;
-            z-index: 999999;
-            left: 0; top: 0; width: 100%; height: 100%;
+            inset: 0;
+            z-index: 10001;
             background-color: var(--bg-color);
             flex-direction: column;
             justify-content: center;
             align-items: center;
         }
-        #lb-container { width: 90%; height: 80vh; display: flex; justify-content: center; align-items: center; }
+        
+        #lb-container { 
+            width: 90%; 
+            height: 85vh; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+        }
+
         .lightbox-content { 
-            max-width: 100%; max-height: 100%; object-fit: contain; 
-            opacity: 0; transition: opacity var(--transition-speed) ease-in-out;
+            max-width: 100%; 
+            max-height: 100%; 
+            object-fit: contain; 
+            opacity: 0; 
+            transition: opacity 0.3s ease-in-out;
         }
 
         .lb-controls-corner { 
-            position: absolute; bottom: 40px; right: 40px; 
-            display: flex; flex-direction: column; align-items: flex-end; gap: 8px; z-index: 1010;
+            position: absolute; 
+            bottom: 40px; 
+            right: 40px; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: flex-end; 
+            gap: 12px; 
         }
-        .lb-nav-group { display: flex; gap: 10px; align-items: center; }
-        .lb-text-btn { font-size: 13px; text-transform: lowercase; cursor: pointer; user-select: none; }
+
+        .lb-nav-group { display: flex; gap: 15px; align-items: center; }
+        .lb-text-btn { font-size: 14px; text-transform: lowercase; cursor: pointer; user-select: none; }
         .lb-text-btn:hover { opacity: 0.5; }
         .lb-separator { opacity: 0.3; }
 
-        @media screen and (max-width: 767px) {
+        /* --- МОБИЛЬНАЯ АДАПТАЦИЯ --- */
+        @media (max-width: 768px) {
             .frauki-style-gallery { column-count: 1; padding: 10px; }
-            .lightbox { display: none !important; }
+            .lightbox { display: none !important; } /* Лайтбокс часто мешает на мобилках */
             .main-header { padding: 20px 15px; }
             .logo { font-size: 24px; }
+            .nav-links { gap: 15px; }
         }
     </style>
 </head>
@@ -187,185 +190,158 @@
         </div>
     </div>
 
-    <div class="frauki-style-gallery" id="main-gallery">
-        <div class="m-item"><img src="images/A645250-R1-10-10 2.jpg"></div>
-        <div class="m-item"><img src="images/691540K4-R1-32-2A.jpg"></div>
-        <div class="m-item"><img src="images/R1-05764-018A.jpg"></div>
-        <div class="m-item"><img src="images/691540F4-R1-00-37.jpg"></div>
-        <div class="m-item"><img src="images/R1-05677-0027.jpg"></div>
-        <div class="m-item"><img src="images/R1-06092-0014 2.jpg"></div>
-        <div class="m-item"><img src="images/R1-05677-0012.jpg"></div>
-        <div class="m-item"><img src="images/691540F4-R1-07-30.jpg"></div>
-        <div class="m-item"><img src="images/A649164-R1-18-19.jpg"></div>
-        <div class="m-item"><img src="images/R1-05764-011A.jpg"></div>
-        <div class="m-item"><img src="images/R1-06092-0002.jpg"></div>
-        <div class="m-item"><img src="images/A646016-R1-09-27.jpg"></div>
-        <div class="m-item"><img src="images/A620782-R1-27-26.jpg"></div>
-        <div class="m-item"><img src="images/691540G-R1-24-8A.jpg"></div>
-        <div class="m-item"><img src="images/R1-04862-0032.jpg"></div>
-        <div class="m-item"><img src="images/A645250-R1-08-8 2.jpg"></div>
-        <div class="m-item"><img src="images/R1-06163-032A.jpg"></div>
-        <div class="m-item"><img src="images/691540K4-R1-04-32A.jpg"></div>
-        <div class="m-item"><img src="images/R1-05677-0011.jpg"></div>
-        <div class="m-item"><img src="images/R1-05764-027A.jpg"></div>
-        <div class="m-item"><img src="images/R1-05677-0001.jpg"></div>
-        <div class="m-item"><img src="images/A645250-R1-03-3.jpg"></div>
-        <div class="m-item"><img src="images/A646016-R1-15-21.jpg"></div>
-        <div class="m-item"><img src="images/R1-05764-025A.jpg"></div>
-        <div class="m-item"><img src="images/A645250-R1-06-6.jpg"></div>
-        <div class="m-item"><img src="images/R1-06092-0030.jpg"></div>
-        <div class="m-item"><img src="images/A655518-R1-27-10.jpg"></div>
-        <div class="m-item"><img src="images/691540K4-R1-05-31A.jpg"></div>
-        <div class="m-item"><img src="images/A645250-R1-34-34.jpg"></div>
-        <div class="m-item"><img src="images/R1-05764-028A.jpg"></div>
-        <div class="m-item"><img src="images/R1-05677-0026.jpg"></div>
-        <div class="m-item"><img src="images/R1-04862-0018 2.jpg"></div>
-        <div class="m-item"><img src="images/R1-05677-0020.jpg"></div>
-        <div class="m-item"><img src="images/R1-04862-0027.jpg"></div>
-        <div class="m-item"><img src="images/691540K4-R1-06-30.jpg"></div>
-        <div class="m-item"><img src="images/R1-06092-0015.jpg"></div>
-        <div class="m-item"><img src="images/R1-04460-0029.jpg"></div>
-        <div class="m-item"><img src="images/A687172-R1-12-25.jpg"></div>
-        <div class="m-item"><img src="images/A645250-R1-17-17.jpg"></div>
-        <div class="m-item"><img src="images/691540F4-R1-30-7.jpg"></div>
-        <div class="m-item"><img src="images/A649164-R1-20-21.jpg"></div>
-        <div class="m-item"><img src="images/691540K4-R1-11-25A.jpg"></div>
-        <div class="m-item"><img src="images/A620782-R1-28-27.jpg"></div>
-        <div class="m-item"><img src="images/R1-06092-0018.jpg"></div>
-        <div class="m-item"><img src="images/R1-05764-002A.jpg"></div>
-        <div class="m-item"><img src="images/R1-06092-0022.jpg"></div>
-    </div>
+    <main class="frauki-style-gallery" id="main-gallery">
+        <div class="m-item"><img src="images/A645250-R1-10-10 2.jpg" alt=""></div>
+        <div class="m-item"><img src="images/691540K4-R1-32-2A.jpg" alt=""></div>
+        <div class="m-item"><img src="images/R1-05764-018A.jpg" alt=""></div>
+        <div class="m-item"><img src="images/691540F4-R1-00-37.jpg" alt=""></div>
+        <div class="m-item"><img src="images/R1-05677-0027.jpg" alt=""></div>
+        <div class="m-item"><img src="images/R1-06092-0014 2.jpg" alt=""></div>
+        <div class="m-item"><img src="images/R1-05677-0012.jpg" alt=""></div>
+        <div class="m-item"><img src="images/691540F4-R1-07-30.jpg" alt=""></div>
+        <div class="m-item"><img src="images/A649164-R1-18-19.jpg" alt=""></div>
+        <div class="m-item"><img src="images/R1-05764-011A.jpg" alt=""></div>
+        <div class="m-item"><img src="images/R1-06092-0002.jpg" alt=""></div>
+        <div class="m-item"><img src="images/A646016-R1-09-27.jpg" alt=""></div>
+        <div class="m-item"><img src="images/A620782-R1-27-26.jpg" alt=""></div>
+        <div class="m-item"><img src="images/691540G-R1-24-8A.jpg" alt=""></div>
+        <div class="m-item"><img src="images/R1-04862-0032.jpg" alt=""></div>
+        <div class="m-item"><img src="images/A645250-R1-08-8 2.jpg" alt=""></div>
+        <div class="m-item"><img src="images/R1-06163-032A.jpg" alt=""></div>
+        <div class="m-item"><img src="images/691540K4-R1-04-32A.jpg" alt=""></div>
+        <div class="m-item"><img src="images/R1-05677-0011.jpg" alt=""></div>
+        <div class="m-item"><img src="images/R1-05764-027A.jpg" alt=""></div>
+        <div class="m-item"><img src="images/R1-05677-0001.jpg" alt=""></div>
+        <div class="m-item"><img src="images/A645250-R1-03-3.jpg" alt=""></div>
+        <div class="m-item"><img src="images/A646016-R1-15-21.jpg" alt=""></div>
+        <div class="m-item"><img src="images/R1-05764-025A.jpg" alt=""></div>
+        <div class="m-item"><img src="images/A645250-R1-06-6.jpg" alt=""></div>
+        <div class="m-item"><img src="images/R1-06092-0030.jpg" alt=""></div>
+        <div class="m-item"><img src="images/A655518-R1-27-10.jpg" alt=""></div>
+        <div class="m-item"><img src="images/691540K4-R1-05-31A.jpg" alt=""></div>
+        <div class="m-item"><img src="images/A645250-R1-34-34.jpg" alt=""></div>
+        <div class="m-item"><img src="images/R1-05764-028A.jpg" alt=""></div>
+        <div class="m-item"><img src="images/R1-05677-0026.jpg" alt=""></div>
+        <div class="m-item"><img src="images/R1-04862-0018 2.jpg" alt=""></div>
+        <div class="m-item"><img src="images/R1-05677-0020.jpg" alt=""></div>
+        <div class="m-item"><img src="images/R1-04862-0027.jpg" alt=""></div>
+        <div class="m-item"><img src="images/691540K4-R1-06-30.jpg" alt=""></div>
+        <div class="m-item"><img src="images/R1-06092-0015.jpg" alt=""></div>
+        <div class="m-item"><img src="images/R1-04460-0029.jpg" alt=""></div>
+        <div class="m-item"><img src="images/A687172-R1-12-25.jpg" alt=""></div>
+        <div class="m-item"><img src="images/A645250-R1-17-17.jpg" alt=""></div>
+        <div class="m-item"><img src="images/691540F4-R1-30-7.jpg" alt=""></div>
+        <div class="m-item"><img src="images/A649164-R1-20-21.jpg" alt=""></div>
+        <div class="m-item"><img src="images/691540K4-R1-11-25A.jpg" alt=""></div>
+        <div class="m-item"><img src="images/A620782-R1-28-27.jpg" alt=""></div>
+        <div class="m-item"><img src="images/R1-06092-0018.jpg" alt=""></div>
+        <div class="m-item"><img src="images/R1-05764-002A.jpg" alt=""></div>
+        <div class="m-item"><img src="images/R1-06092-0022.jpg" alt=""></div>
+    </main>
 
-    <div class="footer-nav">
+    <footer class="footer-nav">
         <div class="back-to-top" id="topBtn">back to top</div>
-    </div>
+    </footer>
 
     <div id="custom-lightbox" class="lightbox">
         <div id="lb-container"></div>
         <div class="lb-controls-corner">
             <div class="lb-nav-group">
-                <div class="lb-text-btn lb-prev">prev</div>
+                <div class="lb-text-btn" id="lb-prev">prev</div>
                 <span class="lb-separator">/</span>
-                <div class="lb-text-btn lb-next">next</div>
+                <div class="lb-text-btn" id="lb-next">next</div>
             </div>
-            <div class="lb-text-btn lb-close">show thumbnails</div>
+            <div class="lb-text-btn" id="lb-close">show thumbnails</div>
         </div>
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', () => {
             const gallery = document.getElementById('main-gallery');
-            
-            // --- НОВЫЙ БЛОК: РАНДОМИЗАЦИЯ ПЕРЕД ЗАГРУЗКОЙ ---
-            const items = Array.from(gallery.querySelectorAll('.m-item'));
-            for (let i = items.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [items[i], items[j]] = [items[j], items[i]];
-            }
-            gallery.innerHTML = '';
-            items.forEach(item => gallery.appendChild(item));
-            // -----------------------------------------------
-
             const preloader = document.getElementById('gallery-preloader');
             const preloaderImg = document.getElementById('preloader-img');
-            const imgs = Array.from(document.querySelectorAll('.m-item img'));
             const lb = document.getElementById('custom-lightbox');
             const lbContainer = document.getElementById('lb-container');
             
-            let loadCount = 0;
-            let flashIndex = 0;
+            // 1. Рандомизация
+            const items = Array.from(gallery.querySelectorAll('.m-item'));
+            items.sort(() => Math.random() - 0.5);
+            gallery.innerHTML = '';
+            items.forEach(item => gallery.appendChild(item));
+
+            const imgs = Array.from(gallery.querySelectorAll('img'));
             let currentIndex = 0;
 
-            // Цикл картинок в прелоадере
+            // 2. Прелоадер
+            let flashIndex = 0;
             const flashInterval = setInterval(() => {
-                if(imgs.length > 0) {
+                if (imgs.length > 0) {
                     preloaderImg.src = imgs[flashIndex].src;
                     flashIndex = (flashIndex + 1) % imgs.length;
                 }
-            }, 120);
+            }, 150);
 
-            // Финальный показ галереи
-            function finishLoading() {
+            // Скрытие прелоадера после полной загрузки окна
+            window.addEventListener('load', () => {
                 clearInterval(flashInterval);
                 preloader.style.opacity = '0';
                 setTimeout(() => {
                     preloader.style.visibility = 'hidden';
-                    gallery.style.opacity = '1'; 
+                    gallery.style.opacity = '1';
                 }, 600);
-            }
+            });
 
-            // Проверка загрузки всех изображений
-            imgs.forEach(img => {
-                if (img.complete) checkCount();
-                else {
-                    img.addEventListener('load', checkCount);
-                    img.addEventListener('error', checkCount);
+            // 3. Лайтбокс логика
+            const showImage = (index) => {
+                if (index < 0) index = imgs.length - 1;
+                if (index >= imgs.length) index = 0;
+                currentIndex = index;
+
+                lbContainer.innerHTML = '';
+                const img = new Image();
+                img.className = 'lightbox-content';
+                img.src = imgs[currentIndex].src;
+                img.onload = () => img.style.opacity = '1';
+                lbContainer.appendChild(img);
+            };
+
+            const closeLightbox = () => {
+                lb.style.display = 'none';
+                document.body.style.overflow = '';
+                lbContainer.innerHTML = '';
+            };
+
+            // Делегирование событий для галереи (быстрее, чем вешать на каждую картинку)
+            gallery.addEventListener('click', (e) => {
+                const item = e.target.closest('.m-item');
+                if (item && window.innerWidth > 768) {
+                    const clickedImg = item.querySelector('img');
+                    currentIndex = imgs.indexOf(clickedImg);
+                    lb.style.display = 'flex';
+                    document.body.style.overflow = 'hidden';
+                    showImage(currentIndex);
                 }
             });
 
-            function checkCount() {
-                loadCount++;
-                if (loadCount >= imgs.length) setTimeout(finishLoading, 600);
-            }
+            // Кнопки управления
+            document.getElementById('lb-next').onclick = (e) => { e.stopPropagation(); showImage(currentIndex + 1); };
+            document.getElementById('lb-prev').onclick = (e) => { e.stopPropagation(); showImage(currentIndex - 1); };
+            document.getElementById('lb-close').onclick = closeLightbox;
+            lb.onclick = (e) => { if (e.target === lb || e.target === lbContainer) closeLightbox(); };
 
-            // КНОПКА НАВЕРХ
+            // Клавиатура
+            document.addEventListener('keydown', (e) => {
+                if (lb.style.display !== 'flex') return;
+                if (e.key === 'ArrowRight') showImage(currentIndex + 1);
+                if (e.key === 'ArrowLeft') showImage(currentIndex - 1);
+                if (e.key === 'Escape') closeLightbox();
+            });
+
+            // Scroll to top
             document.getElementById('topBtn').onclick = () => {
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             };
-
-            // ЛАЙТБОКС
-            function renderImage(index) {
-                currentIndex = index;
-                lbContainer.innerHTML = '';
-                const newImg = document.createElement('img');
-                newImg.className = 'lightbox-content';
-                newImg.src = imgs[currentIndex].src;
-                lbContainer.appendChild(newImg);
-                setTimeout(() => { newImg.style.opacity = '1'; }, 10);
-            }
-
-            imgs.forEach((item, idx) => {
-                item.parentElement.addEventListener('click', () => {
-                    if (window.innerWidth > 767) {
-                        lb.style.display = 'flex';
-                        document.body.style.overflow = 'hidden';
-                        renderImage(idx);
-                    }
-                });
-            });
-
-            const closeBtn = document.querySelector('.lb-close');
-            closeBtn.onclick = () => {
-                lb.style.display = 'none';
-                document.body.style.overflow = 'auto';
-                lbContainer.innerHTML = ''; 
-            };
-
-            document.querySelector('.lb-next').onclick = (e) => { 
-                e.stopPropagation(); 
-                renderImage((currentIndex + 1) % imgs.length); 
-            };
-            document.querySelector('.lb-prev').onclick = (e) => { 
-                e.stopPropagation(); 
-                renderImage((currentIndex - 1 + imgs.length) % imgs.length); 
-            };
-            
-            lb.onclick = (e) => { if (e.target === lb || e.target === lbContainer) closeBtn.click(); };
-
-            document.addEventListener('keydown', (e) => {
-                if (lb.style.display !== 'flex') return;
-                if (e.key === "ArrowRight") renderImage((currentIndex + 1) % imgs.length);
-                if (e.key === "ArrowLeft") renderImage((currentIndex - 1 + imgs.length) % imgs.length);
-                if (e.key === "Escape") closeBtn.click();
-            });
         });
     </script>
 </body>
 </html>
-
-
-
-
-
-
-

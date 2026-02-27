@@ -23,7 +23,14 @@
             font-family: 'New Tegomin', serif;
             color: var(--text-color);
             line-height: 1.6;
-            /* Скрываем скролл до момента загрузки, если нужно */
+            /* Плавное проявление всего контента */
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        /* Когда JS сработает, страница плавно появится */
+        body.is-loaded {
+            opacity: 1;
         }
 
         /* ШАПКА */
@@ -68,16 +75,15 @@
             padding: 0 20px 60px 20px;
             gap: 60px;
             align-items: flex-start;
-            /* Начальное состояние для всей секции */
-            opacity: 0;
-            transition: opacity var(--transition-speed) ease;
         }
 
         .about-image-side {
             flex: 1;
             max-width: 50%;
-            transform: translateY(10px);
-            transition: transform var(--transition-speed) ease;
+            /* Начальное смещение для анимации */
+            transform: translateY(20px);
+            opacity: 0;
+            transition: transform var(--transition-speed) ease, opacity var(--transition-speed) ease;
         }
 
         .about-image-side img {
@@ -91,17 +97,17 @@
             flex: 1;
             padding-top: 60px;
             max-width: 450px;
-            transform: translateY(15px);
-            transition: transform var(--transition-speed) ease 0.1s; /* Небольшая задержка для текста */
+            /* Начальное смещение для анимации */
+            transform: translateY(25px);
+            opacity: 0;
+            transition: transform var(--transition-speed) ease 0.2s, opacity var(--transition-speed) ease 0.2s;
         }
 
-        /* Когда страница загружена, добавляем этот класс через JS */
-        .is-loaded .about-container {
-            opacity: 1;
-        }
+        /* Анимация при загрузке */
         .is-loaded .about-image-side, 
         .is-loaded .about-text-side {
             transform: translateY(0);
+            opacity: 1;
         }
 
         .about-text-side p {
@@ -144,13 +150,14 @@
             }
             .logo { font-size: 24px; }
             .main-header { padding: 20px 15px; }
+            .nav-links { gap: 15px; }
         }
     </style>
 </head>
 <body>
 
     <header class="main-header">
-        <a href="/">helgiforest</a>
+        <a href="/" class="logo">helgiforest</a>
         <nav class="nav-links">
             <a href="index.html" class="nav-item">overview</a>
             <a href="about.html" class="nav-item active">about</a>
@@ -179,31 +186,16 @@
     </main>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const img = document.getElementById('aboutImg');
-            
-            // Функция для финального "проявления" контента
-            function revealPage() {
-                // Добавляем класс к body, который запускает CSS-анимации
-                document.body.classList.add('is-loaded');
-            }
-
-            // Проверяем, загружена ли картинка
-            if (img.complete) {
-                // Если картинка уже в кэше, проявляем быстро
-                setTimeout(revealPage, 100);
-            } else {
-                // Если нет — ждем события load
-                img.addEventListener('load', revealPage);
-                // На случай ошибки загрузки, чтобы страница не осталась пустой
-                img.addEventListener('error', revealPage);
-            }
-            
-            // Запасной таймер (на случай очень медленного интернета)
-            setTimeout(revealPage, 3000);
+        window.addEventListener('load', () => {
+            // Используем событие load для всего окна, чтобы дождаться картинки
+            document.body.classList.add('is-loaded');
         });
+
+        // Запасной вариант, если картинка не грузится
+        setTimeout(() => {
+            document.body.classList.add('is-loaded');
+        }, 2000);
     </script>
 
 </body>
 </html>
-//

@@ -37,7 +37,6 @@
             box-sizing: border-box;
         }
 
-        /* Поправил стиль лого, чтобы он не был мелким синим текстом */
         .logo { 
             font-size: 32px; 
             letter-spacing: -0.02em; 
@@ -81,12 +80,29 @@
             width: 300px; 
             height: 300px; 
             object-fit: contain; 
-            opacity: 0; /* Скрыта изначально */
-            transition: opacity 0.5s ease; /* Плавное проявление */
+            opacity: 0; 
+            transition: opacity 0.5s ease; 
         }
-        /* Класс, который мы будем добавлять через JS */
         #preloader-img.loaded {
             opacity: 1;
+        }
+
+        /* АНИМАЦИЯ ТОЧЕК */
+        .preloader-text {
+            font-size: 16px;
+            letter-spacing: 0.05em;
+        }
+        .dots span {
+            display: inline-block;
+            animation: dot-pulse 1.5s infinite;
+            opacity: 0;
+        }
+        .dots span:nth-child(2) { animation-delay: 0.3s; }
+        .dots span:nth-child(3) { animation-delay: 0.6s; }
+
+        @keyframes dot-pulse {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 1; }
         }
 
         /* --- ГАЛЕРЕЯ --- */
@@ -182,14 +198,6 @@
             .main-header { padding: 20px 15px; }
             .logo { font-size: 24px; }
             .nav-links { gap: 15px; }
-            
-         .small-contact-text {
-            font-size: 15px !important;
-            line-height: 1.5;
-            opacity: 0.8;
-            margin-top: 30px;
-        }
-
         }
     </style>
 </head>
@@ -206,7 +214,7 @@
     <div id="gallery-preloader">
         <div class="preloader-content">
             <img id="preloader-img">
-            <div class="preloader-text">loading project</div>
+            <div class="preloader-text">loading project<span class="dots"><span>.</span><span>.</span><span>.</span></span></div>
         </div>
     </div>
 
@@ -302,14 +310,10 @@
 
             if (imgs.length > 0) {
                 const nextSrc = imgs[flashIndex].src;
-                
-                // Создаем "фантомную" картинку для предзагрузки
                 const imgLoader = new Image();
                 imgLoader.src = nextSrc;
                 
                 imgLoader.onload = () => {
-                    // Когда следующая фотка готова, просто меняем src
-                    // Она подменится мгновенно, так как уже в кеше
                     preloaderImg.src = nextSrc;
                     preloaderImg.classList.add('loaded');
                 };
@@ -318,7 +322,6 @@
             }
         };
 
-        // Смена раз в 1.5 сек (можешь поставить 1000 для бодрости)
         const flashInterval = setInterval(nextFlashImage, 1500);
         nextFlashImage();
 
@@ -352,7 +355,7 @@
             preloader.style.display = 'none';
         }
 
-        // --- ЛАЙТБОКС (ТВОЙ ОРИГИНАЛЬНЫЙ) ---
+        // --- ЛАЙТБОКС ---
         const showImage = (index) => {
             if (index < 0) index = imgs.length - 1;
             if (index >= imgs.length) index = 0;
@@ -401,15 +404,3 @@
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-

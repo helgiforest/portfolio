@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const imgs = Array.from(gallery.querySelectorAll('img'));
     let currentIndex = 0;
 
-    // 2. Случайная фраза прелоадера при каждой загрузке
+    // 2. "loading gallery" при обычном заходе, случайная фраза — только при обновлении страницы (F5)
     const shufflePhrases = [
         'shuffling',
         'mixing the order',
@@ -25,12 +25,18 @@ document.addEventListener('DOMContentLoaded', () => {
         'reordering the gallery',
         'rolling the film',
     ];
-    preloaderTextLabel.textContent = shufflePhrases[Math.floor(Math.random() * shufflePhrases.length)];
+    const navEntry = performance.getEntriesByType('navigation')[0];
+    const isReload = navEntry && navEntry.type === 'reload';
+    preloaderTextLabel.textContent = isReload
+        ? shufflePhrases[Math.floor(Math.random() * shufflePhrases.length)]
+        : 'loading gallery';
 
     // 3. БЕСШОВНЫЙ ПРЕЛОАДЕР
     let flashIndex = 0;
     let imagesLoadedTotal = 0;
     const totalImagesCount = imgs.length;
+    const preloaderStartTime = Date.now();
+    const MIN_PRELOADER_MS = 2600; // чтобы превьюшки успели помигать хотя бы пару раз, даже если фото загрузились почти мгновенно
 
     const nextFlashImage = () => {
         if (preloader.style.visibility === 'hidden') return;
@@ -49,23 +55,29 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    const flashInterval = setInterval(nextFlashImage, 1500);
+    const flashInterval = setInterval(nextFlashImage, 1000);
     nextFlashImage();
 
     // 4. Контроль полной загрузки сайта
+    const revealGallery = () => {
+        clearInterval(flashInterval);
+
+        setTimeout(() => {
+            preloader.style.opacity = '0';
+            setTimeout(() => {
+                preloader.style.visibility = 'hidden';
+                gallery.style.opacity = '1';
+                document.body.classList.add('is-loaded');
+            }, 600);
+        }, 800);
+    };
+
     const checkAllImagesLoaded = () => {
         imagesLoadedTotal++;
         if (imagesLoadedTotal >= totalImagesCount) {
-            clearInterval(flashInterval);
-
-            setTimeout(() => {
-                preloader.style.opacity = '0';
-                setTimeout(() => {
-                    preloader.style.visibility = 'hidden';
-                    gallery.style.opacity = '1';
-                    document.body.classList.add('is-loaded');
-                }, 600);
-            }, 800);
+            const elapsed = Date.now() - preloaderStartTime;
+            const remaining = Math.max(0, MIN_PRELOADER_MS - elapsed);
+            setTimeout(revealGallery, remaining);
         }
     };
 

@@ -1,0 +1,155 @@
+:root {
+    --gallery-gap: 15px;
+}
+
+/* --- ПРЕЛОАДЕР --- */
+#gallery-preloader {
+    position: fixed;
+    inset: 0;
+    background-color: var(--bg-color);
+    z-index: 10000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: opacity 0.6s ease, visibility 0.6s;
+}
+
+.preloader-content {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+#preloader-img {
+    width: 300px;
+    height: 300px;
+    object-fit: contain;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+#preloader-img.loaded {
+    opacity: 1;
+}
+
+/* --- АНИМАЦИЯ ПЕЧАТАЮЩИХСЯ ТОЧЕК --- */
+.preloader-text {
+    font-size: 16px;
+    letter-spacing: 0.05em;
+    display: flex;
+    align-items: baseline;
+}
+
+.typewriter-dots {
+    display: inline-block;
+    width: 25px; /* Резервируем место под точки, чтобы текст не прыгал */
+    text-align: left;
+    margin-left: 4px;
+}
+
+.typewriter-dots::after {
+    content: '';
+    animation: type-dots 2.5s steps(4, end) infinite;
+}
+
+@keyframes type-dots {
+    0% { content: ''; }
+    25% { content: '.'; }
+    50% { content: '..'; }
+    75% { content: '...'; }
+    100% { content: ''; }
+}
+
+/* --- ГАЛЕРЕЯ --- */
+.frauki-style-gallery {
+    column-width: 450px;
+    column-gap: var(--gallery-gap);
+    padding: var(--gallery-gap);
+    max-width: 1600px;
+    margin: 0 auto;
+    opacity: 0;
+    transition: opacity 1s ease;
+}
+
+.m-item {
+    display: block;
+    margin-bottom: var(--gallery-gap);
+    break-inside: avoid;
+    cursor: pointer;
+    overflow: hidden;
+    background-color: #eee;
+}
+
+.m-item img {
+    width: 100%;
+    height: auto;
+    display: block;
+    transition: transform 1.2s cubic-bezier(0.2, 0.5, 0.2, 1), filter 0.8s ease;
+}
+
+.m-item:hover img {
+    transform: scale(1.03);
+    filter: brightness(1.05);
+}
+
+/* --- ФУТЕР --- */
+.footer-nav { display: flex; justify-content: center; padding: 20px 0 20px; }
+.back-to-top {
+    font-size: 16px;
+    text-transform: lowercase;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    opacity: 0.4;
+    transition: opacity 0.3s ease;
+}
+.back-to-top:hover { opacity: 1; }
+
+/* --- ЛАЙТБОКС --- */
+.lightbox {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 10001;
+    background-color: var(--bg-color);
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+#lb-container {
+    width: 90%;
+    height: 85vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.lightbox-content {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+}
+
+.lb-controls-corner {
+    position: absolute;
+    bottom: 40px;
+    right: 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 12px;
+}
+
+.lb-counter { font-size: 13px; letter-spacing: 0.05em; opacity: 0.4; }
+.lb-nav-group { display: flex; gap: 15px; align-items: center; }
+.lb-text-btn { font-size: 14px; text-transform: lowercase; cursor: pointer; user-select: none; }
+.lb-text-btn:hover { opacity: 0.5; }
+.lb-separator { opacity: 0.3; }
+
+@media (max-width: 768px) {
+    .frauki-style-gallery { column-count: 1; padding: 10px; }
+    .lightbox { display: none !important; }
+}

@@ -1,0 +1,97 @@
+:root {
+    --about-reveal-speed: 1.2s; /* Чуть медленнее для благородности */
+}
+
+/* --- ЭФФЕКТЫ ПОЯВЛЕНИЯ --- */
+.about-container {
+    display: flex;
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 0 20px 60px 20px;
+    gap: 60px;
+    align-items: flex-start;
+
+    /* Начальное состояние: невидимый и чуть ниже */
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity var(--about-reveal-speed) ease, transform var(--about-reveal-speed) cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Когда страница загружена, плавно проявляем контейнер */
+body.is-loaded .about-container {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.about-image-side {
+    flex: 1;
+    max-width: 50%;
+}
+
+.about-image-side img {
+    width: 100%;
+    height: auto;
+    display: block;
+    object-fit: cover;
+    /* Легкий зум при появлении как доп. эффект (по желанию) */
+    transition: transform 1.5s ease;
+}
+
+.about-text-side {
+    flex: 1;
+    padding-top: 60px;
+    max-width: 450px;
+    /* Дополнительная задержка для текста, чтобы он шел после фото */
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 1s ease 0.4s, transform 1s ease 0.4s;
+}
+
+body.is-loaded .about-text-side {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.about-text-side p {
+    font-size: 18px;
+    margin-bottom: 25px;
+    letter-spacing: 0.01em;
+}
+
+/* --- ТА САМАЯ ПРАВКА ДЛЯ ШРИФТА --- */
+.about-text-side p.small-contact-text {
+    font-size: 15px !important;
+    opacity: 1;
+    line-height: 1.4;
+    margin-top: 40px;
+}
+
+.small-contact-text strong {
+    font-size: 15px !important;
+}
+
+.contact-links {
+    margin-top: 40px;
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.contact-links a {
+    color: var(--text-color);
+    text-decoration: none;
+    border-bottom: 1px solid rgba(17, 17, 17, 0.3);
+    padding-bottom: 2px;
+    font-size: 16px;
+    transition: border-color 0.3s, opacity 0.3s;
+}
+
+.contact-links a:hover {
+    border-bottom-color: var(--text-color);
+    opacity: 0.6;
+}
+
+@media screen and (max-width: 768px) {
+    .about-container { flex-direction: column; gap: 40px; padding-top: 20px; }
+    .about-image-side, .about-text-side { max-width: 100%; padding-top: 0; }
+}

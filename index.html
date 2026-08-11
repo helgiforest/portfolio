@@ -4,212 +4,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>helgiforest</title>
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=New+Tegomin&display=swap" rel="stylesheet">
-    
-    <style>
-        :root {
-            --bg-color: #FAF7EF;
-            --text-color: #111;
-            --transition-speed: 0.2s;
-            --gallery-gap: 15px;
-        }
+    <meta name="description" content="Photography portfolio by Oleg &quot;helgiforest&quot; Seliverstov">
 
-        body {
-            margin: 0;
-            padding: 0;
-            background-color: var(--bg-color);
-            font-family: 'New Tegomin', serif;
-            color: var(--text-color);
-            -webkit-font-smoothing: antialiased;
-        }
+    <link rel="icon" type="image/png" href="/favicon-32x32.png" sizes="32x32">
+    <link rel="icon" type="image/png" href="/favicon-16x16.png" sizes="16x16">
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 
-        /* --- ШАПКА --- */
-        .main-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px 20px;
-            max-width: 1600px;
-            margin: 0 auto;
-            box-sizing: border-box;
-        }
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="helgiforest">
+    <meta property="og:title" content="helgiforest — film photography">
+    <meta property="og:description" content="Photography portfolio by Oleg &quot;helgiforest&quot; Seliverstov">
+    <meta property="og:url" content="https://helgiforest.com/">
+    <meta property="og:image" content="https://helgiforest.com/images/social-preview.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
 
-        .logo { 
-            font-size: 32px; 
-            letter-spacing: -0.02em; 
-            text-decoration: none; 
-            color: var(--text-color);
-            cursor: pointer;
-        }
-        
-        .nav-links { display: flex; gap: 30px; }
-        .nav-item {
-            text-decoration: none;
-            color: var(--text-color);
-            font-size: 16px;
-            opacity: 0.6;
-            transition: opacity var(--transition-speed) ease;
-        }
-        .nav-item:hover, .nav-item.active { opacity: 1; }
-        .nav-item.active { border-bottom: 1.5px solid var(--text-color); }
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="helgiforest — film photography">
+    <meta name="twitter:description" content="Photography portfolio by Oleg &quot;helgiforest&quot; Seliverstov">
+    <meta name="twitter:image" content="https://helgiforest.com/images/social-preview.jpg">
 
-        /* --- ПРЕЛОАДЕР --- */
-        #gallery-preloader {
-            position: fixed;
-            inset: 0;
-            background-color: var(--bg-color);
-            z-index: 10000;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            transition: opacity 0.6s ease, visibility 0.6s;
-        }
-
-        .preloader-content {
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 20px;
-        }
-
-        #preloader-img { 
-            width: 300px; 
-            height: 300px; 
-            object-fit: contain; 
-            opacity: 0; 
-            transition: opacity 0.5s ease; 
-        }
-        #preloader-img.loaded {
-            opacity: 1;
-        }
-
-        /* --- АНИМАЦИЯ ПЕЧАТАЮЩИХСЯ ТОЧЕК --- */
-        .preloader-text {
-            font-size: 16px;
-            letter-spacing: 0.05em;
-            display: flex;
-            align-items: baseline;
-        }
-
-        .typewriter-dots {
-            display: inline-block;
-            width: 25px; /* Резервируем место под точки, чтобы текст не прыгал */
-            text-align: left;
-            margin-left: 4px;
-        }
-
-        .typewriter-dots::after {
-            content: '';
-            animation: type-dots 2.5s steps(4, end) infinite;
-        }
-
-        @keyframes type-dots {
-            0% { content: ''; }
-            25% { content: '.'; }
-            50% { content: '..'; }
-            75% { content: '...'; }
-            100% { content: ''; }
-        }
-
-        /* --- ГАЛЕРЕЯ --- */
-        .frauki-style-gallery {
-            column-width: 450px;
-            column-gap: var(--gallery-gap);
-            padding: var(--gallery-gap);
-            max-width: 1600px;
-            margin: 0 auto;
-            opacity: 0;
-            transition: opacity 1s ease;
-        }
-
-        .m-item { 
-            display: block; 
-            margin-bottom: var(--gallery-gap); 
-            break-inside: avoid; 
-            cursor: pointer; 
-            overflow: hidden; 
-            background-color: #eee; 
-        }
-        
-        .m-item img { 
-            width: 100%; 
-            height: auto; 
-            display: block; 
-            transition: transform 1.2s cubic-bezier(0.2, 0.5, 0.2, 1), filter 0.8s ease; 
-        }
-
-        .m-item:hover img { 
-            transform: scale(1.03); 
-            filter: brightness(1.05); 
-        }
-
-        /* --- ФУТЕР --- */
-        .footer-nav { display: flex; justify-content: center; padding: 20px 0 20px; }
-        .back-to-top {
-            font-size: 16px;
-            text-transform: lowercase;
-            letter-spacing: 0.05em;
-            cursor: pointer;
-            opacity: 0.4;
-            transition: opacity 0.3s ease;
-        }
-        .back-to-top:hover { opacity: 1; }
-
-        /* --- ЛАЙТБОКС --- */
-        .lightbox {
-            display: none;
-            position: fixed;
-            inset: 0;
-            z-index: 10001;
-            background-color: var(--bg-color);
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
-        
-        #lb-container { 
-            width: 90%; 
-            height: 85vh; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-        }
-
-        .lightbox-content { 
-            max-width: 100%; 
-            max-height: 100%; 
-            object-fit: contain; 
-            opacity: 0; 
-            transition: opacity 0.3s ease-in-out;
-        }
-
-        .lb-controls-corner { 
-            position: absolute; 
-            bottom: 40px; 
-            right: 40px; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: flex-end; 
-            gap: 12px; 
-        }
-
-        .lb-nav-group { display: flex; gap: 15px; align-items: center; }
-        .lb-text-btn { font-size: 14px; text-transform: lowercase; cursor: pointer; user-select: none; }
-        .lb-text-btn:hover { opacity: 0.5; }
-        .lb-separator { opacity: 0.3; }
-
-        @media (max-width: 768px) {
-            .frauki-style-gallery { column-count: 1; padding: 10px; }
-            .lightbox { display: none !important; }
-            .main-header { padding: 20px 15px; }
-            .logo { font-size: 24px; }
-            .nav-links { gap: 15px; }
-        }
-    </style>
+    <link rel="preload" href="/fonts/new-tegomin-latin.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="/css/base.css">
+    <link rel="stylesheet" href="/css/home.css">
 </head>
 <body>
 
@@ -225,68 +43,67 @@
         <div class="preloader-content">
             <img id="preloader-img">
             <div class="preloader-text">
-                loading gallery<span class="typewriter-dots"></span>
+                <span id="preloader-text-label">loading gallery</span><span class="typewriter-dots"></span>
             </div>
         </div>
     </div>
 
     <main class="frauki-style-gallery" id="main-gallery">
-        <div class="m-item"><img src="images/444440820002.jpg" alt=""></div>
-        <div class="m-item"><img src="images/818170f2-R1-07-8-edited.jpg" alt=""></div>
-        <div class="m-item"><img src="images/1216x1649x1.jpg" alt=""></div>
-        <div class="m-item"><img src="images/1216x1724x1.jpg" alt=""></div>
-        <div class="m-item"><img src="images/1216x897x1.jpg" alt=""></div>
-        <div class="m-item"><img src="images/444440820007.jpg" alt=""></div>
-        <div class="m-item"><img src="images/773762CLASSICOLOR-R1-20-21.jpg" alt=""></div>
-        <div class="m-item"><img src="images/773762CLASSICOLOR-R1-27-28.jpg" alt=""></div>
-        <div class="m-item"><img src="images/773762LC2-R1-13-14.jpg" alt=""></div>
-        <div class="m-item"><img src="images/773762LC2-R1-20-21.jpg" alt=""></div>
-        <div class="m-item"><img src="images/444440820015.jpg" alt=""></div>
-        <div class="m-item"><img src="images/R1-06611-0011.jpg" alt=""></div>
-        <div class="m-item"><img src="images/R1-06611-0013.jpg" alt=""></div>
-        <div class="m-item"><img src="images/759248l8-R1-05-5A.jpg" alt=""></div>
-        <div class="m-item"><img src="images/759248l8-R1-11-11A.jpg" alt=""></div>
-        <div class="m-item"><img src="images/A645250-R1-10-10 2.jpg" alt=""></div>
-        <div class="m-item"><img src="images/R1-02759-0023.jpg" alt=""></div>
-        <div class="m-item"><img src="images/R1-02759-0022.jpg" alt=""></div>
-        <div class="m-item"><img src="images/R1-05764-018A.jpg" alt=""></div>
-        <div class="m-item"><img src="images/691540F4-R1-00-37.jpg" alt=""></div>
-        <div class="m-item"><img src="images/R1-05677-0027.jpg" alt=""></div>
-        <div class="m-item"><img src="images/R1-06092-0014 2.jpg" alt=""></div>
-        <div class="m-item"><img src="images/R1-05677-0012.jpg" alt=""></div>
-        <div class="m-item"><img src="images/691540F4-R1-07-30.jpg" alt=""></div>
-        <div class="m-item"><img src="images/A649164-R1-18-19.jpg" alt=""></div>
-        <div class="m-item"><img src="images/R1-05764-011A.jpg" alt=""></div>
-        <div class="m-item"><img src="images/R1-06092-0002.jpg" alt=""></div>
-        <div class="m-item"><img src="images/A646016-R1-09-27.jpg" alt=""></div>
-        <div class="m-item"><img src="images/IMG_2441.JPG" alt=""></div>
-        <div class="m-item"><img src="images/R1-04862-0032.jpg" alt=""></div>
-        <div class="m-item"><img src="images/A645250-R1-08-8 2.jpg" alt=""></div>
-        <div class="m-item"><img src="images/R1-06163-032A.jpg" alt=""></div>
-        <div class="m-item"><img src="images/691540K4-R1-04-32A.jpg" alt=""></div>
-        <div class="m-item"><img src="images/R1-05677-0011.jpg" alt=""></div>
-        <div class="m-item"><img src="images/R1-05764-027A.jpg" alt=""></div>
-        <div class="m-item"><img src="images/A645250-R1-03-3.jpg" alt=""></div>
-        <div class="m-item"><img src="images/R1-05764-025A.jpg" alt=""></div>
-        <div class="m-item"><img src="images/R1-06092-0030.jpg" alt=""></div>
-        <div class="m-item"><img src="images/R1-05677-0026.jpg" alt=""></div>
-        <div class="m-item"><img src="images/R1-04862-0018 2.jpg" alt=""></div>
-        <div class="m-item"><img src="images/R1-05677-0020.jpg" alt=""></div>
-        <div class="m-item"><img src="images/691540K4-R1-06-30.jpg" alt=""></div>
-        <div class="m-item"><img src="images/R1-06092-0015.jpg" alt=""></div>
-        <div class="m-item"><img src="images/R1-04460-0029.jpg" alt=""></div>
-        <div class="m-item"><img src="images/691540F4-R1-30-7.jpg" alt=""></div>
-        <div class="m-item"><img src="images/A649164-R1-20-21.jpg" alt=""></div>
-        <div class="m-item"><img src="images/691540K4-R1-11-25A.jpg" alt=""></div>
-        <div class="m-item"><img src="images/A620782-R1-28-27.jpg" alt=""></div>
-        <div class="m-item"><img src="images/R1-06092-0018.jpg" alt=""></div>
-        <div class="m-item"><img src="images/IMG_2451.JPG" alt=""></div>
-        <div class="m-item"><img src="images/R1-03499-0002.jpg" alt=""></div>
-        <div class="m-item"><img src="images/R1-03499-0026.jpg" alt=""></div>
-        <div class="m-item"><img src="images/R1-03643-0008.jpg" alt=""></div>
-        <div class="m-item"><img src="images/R1-03643-0031.jpg" alt=""></div>
-        <div class="m-item"><img src="images/R1-03643-0010.jpg" alt=""></div>
-        <div class="m-item"><img src="images/R1-03643-0021.jpg" alt=""></div>
+        <div class="m-item"><img src="images/thumb/444440820002.webp" data-full="images/full/444440820002.webp" alt="" width="1600" height="971"></div>
+        <div class="m-item"><img src="images/thumb/818170f2-R1-07-8-edited.webp" data-full="images/full/818170f2-R1-07-8-edited.webp" alt="" width="1316" height="1600"></div>
+        <div class="m-item"><img src="images/thumb/1216x1649x1.webp" data-full="images/full/1216x1649x1.webp" alt="" width="1180" height="1600"></div>
+        <div class="m-item"><img src="images/thumb/1216x1724x1.webp" data-full="images/full/1216x1724x1.webp" alt="" width="1129" height="1600"></div>
+        <div class="m-item"><img src="images/thumb/1216x897x1.webp" data-full="images/full/1216x897x1.webp" alt="" width="1216" height="897"></div>
+        <div class="m-item"><img src="images/thumb/444440820007.webp" data-full="images/full/444440820007.webp" alt="" width="1600" height="1091"></div>
+        <div class="m-item"><img src="images/thumb/773762CLASSICOLOR-R1-20-21.webp" data-full="images/full/773762CLASSICOLOR-R1-20-21.webp" alt="" width="1033" height="1600"></div>
+        <div class="m-item"><img src="images/thumb/773762CLASSICOLOR-R1-27-28.webp" data-full="images/full/773762CLASSICOLOR-R1-27-28.webp" alt="" width="1052" height="1600"></div>
+        <div class="m-item"><img src="images/thumb/773762LC2-R1-13-14.webp" data-full="images/full/773762LC2-R1-13-14.webp" alt="" width="1335" height="1600"></div>
+        <div class="m-item"><img src="images/thumb/773762LC2-R1-20-21.webp" data-full="images/full/773762LC2-R1-20-21.webp" alt="" width="1101" height="1600"></div>
+        <div class="m-item"><img src="images/thumb/444440820015.webp" data-full="images/full/444440820015.webp" alt="" width="1188" height="1600"></div>
+        <div class="m-item"><img src="images/thumb/R1-06611-0011.webp" data-full="images/full/R1-06611-0011.webp" alt="" width="1142" height="1600"></div>
+        <div class="m-item"><img src="images/thumb/R1-06611-0013.webp" data-full="images/full/R1-06611-0013.webp" alt="" width="1600" height="1160"></div>
+        <div class="m-item"><img src="images/thumb/759248l8-R1-11-11A.webp" data-full="images/full/759248l8-R1-11-11A.webp" alt="" width="1125" height="1600"></div>
+        <div class="m-item"><img src="images/thumb/A645250-R1-10-10 2.webp" data-full="images/full/A645250-R1-10-10 2.webp" alt="" width="1083" height="1600"></div>
+        <div class="m-item"><img src="images/thumb/R1-02759-0023.webp" data-full="images/full/R1-02759-0023.webp" alt="" width="1156" height="1600"></div>
+        <div class="m-item"><img src="images/thumb/R1-02759-0022.webp" data-full="images/full/R1-02759-0022.webp" alt="" width="1232" height="1600"></div>
+        <div class="m-item"><img src="images/thumb/R1-05764-018A.webp" data-full="images/full/R1-05764-018A.webp" alt="" width="1600" height="1083"></div>
+        <div class="m-item"><img src="images/thumb/691540F4-R1-00-37.webp" data-full="images/full/691540F4-R1-00-37.webp" alt="" width="1600" height="1083"></div>
+        <div class="m-item"><img src="images/thumb/R1-05677-0027.webp" data-full="images/full/R1-05677-0027.webp" alt="" width="1261" height="1600"></div>
+        <div class="m-item"><img src="images/thumb/R1-06092-0014 2.webp" data-full="images/full/R1-06092-0014 2.webp" alt="" width="1600" height="1082"></div>
+        <div class="m-item"><img src="images/thumb/R1-05677-0012.webp" data-full="images/full/R1-05677-0012.webp" alt="" width="1600" height="1083"></div>
+        <div class="m-item"><img src="images/thumb/691540F4-R1-07-30.webp" data-full="images/full/691540F4-R1-07-30.webp" alt="" width="1083" height="1600"></div>
+        <div class="m-item"><img src="images/thumb/A649164-R1-18-19.webp" data-full="images/full/A649164-R1-18-19.webp" alt="" width="1600" height="1105"></div>
+        <div class="m-item"><img src="images/thumb/R1-05764-011A.webp" data-full="images/full/R1-05764-011A.webp" alt="" width="1280" height="1600"></div>
+        <div class="m-item"><img src="images/thumb/R1-06092-0002.webp" data-full="images/full/R1-06092-0002.webp" alt="" width="1280" height="1600"></div>
+        <div class="m-item"><img src="images/thumb/A646016-R1-09-27.webp" data-full="images/full/A646016-R1-09-27.webp" alt="" width="900" height="1600"></div>
+        <div class="m-item"><img src="images/thumb/IMG_2441.webp" data-full="images/full/IMG_2441.webp" alt="" width="1280" height="1600"></div>
+        <div class="m-item"><img src="images/thumb/R1-04862-0032.webp" data-full="images/full/R1-04862-0032.webp" alt="" width="901" height="1600"></div>
+        <div class="m-item"><img src="images/thumb/A645250-R1-08-8 2.webp" data-full="images/full/A645250-R1-08-8 2.webp" alt="" width="1083" height="1600"></div>
+        <div class="m-item"><img src="images/thumb/R1-06163-032A.webp" data-full="images/full/R1-06163-032A.webp" alt="" width="1600" height="1083"></div>
+        <div class="m-item"><img src="images/thumb/691540K4-R1-04-32A.webp" data-full="images/full/691540K4-R1-04-32A.webp" alt="" width="1542" height="1542"></div>
+        <div class="m-item"><img src="images/thumb/R1-05677-0011.webp" data-full="images/full/R1-05677-0011.webp" alt="" width="1600" height="1200"></div>
+        <div class="m-item"><img src="images/thumb/R1-05764-027A.webp" data-full="images/full/R1-05764-027A.webp" alt="" width="1083" height="1600"></div>
+        <div class="m-item"><img src="images/thumb/A645250-R1-03-3.webp" data-full="images/full/A645250-R1-03-3.webp" alt="" width="1083" height="1600"></div>
+        <div class="m-item"><img src="images/thumb/R1-05764-025A.webp" data-full="images/full/R1-05764-025A.webp" alt="" width="1580" height="1580"></div>
+        <div class="m-item"><img src="images/thumb/R1-06092-0030.webp" data-full="images/full/R1-06092-0030.webp" alt="" width="1600" height="1083"></div>
+        <div class="m-item"><img src="images/thumb/R1-05677-0026.webp" data-full="images/full/R1-05677-0026.webp" alt="" width="900" height="1600"></div>
+        <div class="m-item"><img src="images/thumb/R1-04862-0018 2.webp" data-full="images/full/R1-04862-0018 2.webp" alt="" width="1204" height="1600"></div>
+        <div class="m-item"><img src="images/thumb/R1-05677-0020.webp" data-full="images/full/R1-05677-0020.webp" alt="" width="1280" height="1600"></div>
+        <div class="m-item"><img src="images/thumb/691540K4-R1-06-30.webp" data-full="images/full/691540K4-R1-06-30.webp" alt="" width="1600" height="1083"></div>
+        <div class="m-item"><img src="images/thumb/R1-06092-0015.webp" data-full="images/full/R1-06092-0015.webp" alt="" width="1600" height="1200"></div>
+        <div class="m-item"><img src="images/thumb/R1-04460-0029.webp" data-full="images/full/R1-04460-0029.webp" alt="" width="1279" height="1600"></div>
+        <div class="m-item"><img src="images/thumb/691540F4-R1-30-7.webp" data-full="images/full/691540F4-R1-30-7.webp" alt="" width="900" height="1600"></div>
+        <div class="m-item"><img src="images/thumb/A649164-R1-20-21.webp" data-full="images/full/A649164-R1-20-21.webp" alt="" width="1055" height="1600"></div>
+        <div class="m-item"><img src="images/thumb/691540K4-R1-11-25A.webp" data-full="images/full/691540K4-R1-11-25A.webp" alt="" width="1600" height="1083"></div>
+        <div class="m-item"><img src="images/thumb/A620782-R1-28-27.webp" data-full="images/full/A620782-R1-28-27.webp" alt="" width="1600" height="1083"></div>
+        <div class="m-item"><img src="images/thumb/R1-06092-0018.webp" data-full="images/full/R1-06092-0018.webp" alt="" width="1600" height="1083"></div>
+        <div class="m-item"><img src="images/thumb/IMG_2451.webp" data-full="images/full/IMG_2451.webp" alt="" width="1600" height="1083"></div>
+        <div class="m-item"><img src="images/thumb/R1-03499-0002.webp" data-full="images/full/R1-03499-0002.webp" alt="" width="1600" height="1179"></div>
+        <div class="m-item"><img src="images/thumb/R1-03499-0026.webp" data-full="images/full/R1-03499-0026.webp" alt="" width="1600" height="931"></div>
+        <div class="m-item"><img src="images/thumb/R1-03643-0008.webp" data-full="images/full/R1-03643-0008.webp" alt="" width="1600" height="1086"></div>
+        <div class="m-item"><img src="images/thumb/R1-03643-0031.webp" data-full="images/full/R1-03643-0031.webp" alt="" width="1600" height="1107"></div>
+        <div class="m-item"><img src="images/thumb/R1-03643-0010.webp" data-full="images/full/R1-03643-0010.webp" alt="" width="1600" height="1201"></div>
+        <div class="m-item"><img src="images/thumb/R1-03643-0021.webp" data-full="images/full/R1-03643-0021.webp" alt="" width="1228" height="1600"></div>
     </main>
 
     <footer class="footer-nav">
@@ -296,6 +113,7 @@
     <div id="custom-lightbox" class="lightbox">
         <div id="lb-container"></div>
         <div class="lb-controls-corner">
+            <div class="lb-counter" id="lb-counter"></div>
             <div class="lb-nav-group">
                 <div class="lb-text-btn" id="lb-prev">prev</div>
                 <span class="lb-separator">/</span>
@@ -305,128 +123,6 @@
         </div>
     </div>
 
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const gallery = document.getElementById('main-gallery');
-        const preloader = document.getElementById('gallery-preloader');
-        const preloaderImg = document.getElementById('preloader-img');
-        const lb = document.getElementById('custom-lightbox');
-        const lbContainer = document.getElementById('lb-container');
-        
-        // 1. Рандомная сортировка
-        const items = Array.from(gallery.querySelectorAll('.m-item'));
-        items.sort(() => Math.random() - 0.5);
-        gallery.innerHTML = '';
-        items.forEach(item => gallery.appendChild(item));
-
-        const imgs = Array.from(gallery.querySelectorAll('img'));
-        let currentIndex = 0;
-
-        // 2. БЕСШОВНЫЙ ПРЕЛОАДЕР
-        let flashIndex = 0;
-        let imagesLoadedTotal = 0;
-        const totalImagesCount = imgs.length;
-
-        const nextFlashImage = () => {
-            if (preloader.style.visibility === 'hidden') return;
-
-            if (imgs.length > 0) {
-                const nextSrc = imgs[flashIndex].src;
-                const imgLoader = new Image();
-                imgLoader.src = nextSrc;
-                
-                imgLoader.onload = () => {
-                    preloaderImg.src = nextSrc;
-                    preloaderImg.classList.add('loaded');
-                };
-
-                flashIndex = (flashIndex + 1) % imgs.length;
-            }
-        };
-
-        const flashInterval = setInterval(nextFlashImage, 1500);
-        nextFlashImage();
-
-        // 3. Контроль полной загрузки сайта
-        const checkAllImagesLoaded = () => {
-            imagesLoadedTotal++;
-            if (imagesLoadedTotal >= totalImagesCount) {
-                clearInterval(flashInterval);
-                
-                setTimeout(() => {
-                    preloader.style.opacity = '0';
-                    setTimeout(() => {
-                        preloader.style.visibility = 'hidden';
-                        gallery.style.opacity = '1';
-                        document.body.classList.add('is-loaded');
-                    }, 600);
-                }, 800); 
-            }
-        };
-
-        if (totalImagesCount > 0) {
-            imgs.forEach(img => {
-                if (img.complete) {
-                    checkAllImagesLoaded();
-                } else {
-                    img.addEventListener('load', checkAllImagesLoaded);
-                    img.addEventListener('error', checkAllImagesLoaded);
-                }
-            });
-        } else {
-            preloader.style.display = 'none';
-        }
-
-        // --- ЛАЙТБОКС ---
-        const showImage = (index) => {
-            if (index < 0) index = imgs.length - 1;
-            if (index >= imgs.length) index = 0;
-            currentIndex = index;
-            lbContainer.innerHTML = '';
-            const img = new Image();
-            img.className = 'lightbox-content';
-            img.src = imgs[currentIndex].src;
-            img.onload = () => img.style.opacity = '1';
-            lbContainer.appendChild(img);
-        };
-
-        const closeLightbox = () => {
-            lb.style.display = 'none';
-            document.body.style.overflow = '';
-            lbContainer.innerHTML = '';
-        };
-
-        gallery.addEventListener('click', (e) => {
-            const item = e.target.closest('.m-item');
-            if (item && window.innerWidth > 768) {
-                const clickedImg = item.querySelector('img');
-                currentIndex = imgs.indexOf(clickedImg);
-                lb.style.display = 'flex';
-                document.body.style.overflow = 'hidden';
-                showImage(currentIndex);
-            }
-        });
-
-        document.getElementById('lb-next').onclick = (e) => { e.stopPropagation(); showImage(currentIndex + 1); };
-        document.getElementById('lb-prev').onclick = (e) => { e.stopPropagation(); showImage(currentIndex - 1); };
-        document.getElementById('lb-close').onclick = closeLightbox;
-        lb.onclick = (e) => { if (e.target === lb || e.target === lbContainer) closeLightbox(); };
-
-        document.addEventListener('keydown', (e) => {
-            if (lb.style.display !== 'flex') return;
-            if (e.key === 'ArrowRight') showImage(currentIndex + 1);
-            if (e.key === 'ArrowLeft') showImage(currentIndex - 1);
-            if (e.key === 'Escape') closeLightbox();
-        });
-
-        document.getElementById('topBtn').onclick = () => {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        };
-    });
-</script>
+<script src="/js/gallery.js" defer></script>
 </body>
 </html>
-
-
-
-

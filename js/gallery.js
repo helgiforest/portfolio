@@ -42,6 +42,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (preloader.style.visibility === 'hidden') return;
 
         if (imgs.length > 0) {
+            let randomIndex = Math.floor(Math.random() * imgs.length);
+            if (imgs.length > 1 && randomIndex === flashIndex) {
+                randomIndex = (randomIndex + 1) % imgs.length;
+            }
+            flashIndex = randomIndex;
+
             const nextSrc = imgs[flashIndex].src;
             const imgLoader = new Image();
             imgLoader.src = nextSrc;
@@ -50,8 +56,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 preloaderImg.src = nextSrc;
                 preloaderImg.classList.add('loaded');
             };
-
-            flashIndex = (flashIndex + 1) % imgs.length;
         }
     };
 

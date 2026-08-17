@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let imagesLoadedTotal = 0;
     const totalImagesCount = imgs.length;
     const preloaderStartTime = Date.now();
-    const MIN_PRELOADER_MS = 2600; // чтобы превьюшки успели помигать хотя бы пару раз, даже если фото загрузились почти мгновенно
+    const MIN_PRELOADER_MS = isReload ? 1500 : 2600; // на обновлении держим короче, на первом заходе — как и раньше
 
     const nextFlashImage = () => {
         if (preloader.style.visibility === 'hidden') return;

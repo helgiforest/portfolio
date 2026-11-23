@@ -1,2 +1,5 @@
 .claude/
 .DS_Store
+
+# Оригиналы для overview — тоже только локально (на сайте не используются)
+/images/originals/

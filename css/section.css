@@ -1,0 +1,155 @@
+/* Страницы разделов: archive / 2025 / 2026.
+   Одна большая фотография за раз, клик справа — дальше, слева — назад.
+   Внизу экрана (всегда, не зависит от фото) — строка: название, счётчик и справа кнопка thumbnails;
+   над кнопкой — мини-сетка (значок галереи), клик открывает все превью. */
+
+:root {
+    --mini-cell: 20px;  /* клетка мини-сетки над thumbnails */
+    --side-gap: 140px;  /* место справа под мини-сетку и кнопку thumbnails */
+}
+
+body.section-page {
+    height: 100vh;
+    height: 100svh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.section-page .main-header { flex: none; width: 100%; }
+
+/* --- ОБЛАСТЬ ПРОСМОТРА --- */
+.viewer {
+    flex: 1;
+    min-height: 0;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 0 20px 20px;
+    box-sizing: border-box;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+body.is-loaded .viewer { opacity: 1; }
+
+/* размер фото считает js/section.js, чтобы подпись была сразу под ним */
+.stage-img {
+    display: block;
+    flex: none;
+    max-width: 100%;
+}
+.stage-img:not([src]) { visibility: hidden; }
+
+/* мини-сетка над кнопкой thumbnails — значок галереи, клик открывает все превью */
+.stage-mini {
+    position: absolute;
+    right: 0;
+    bottom: calc(100% + 10px);
+    display: grid;
+    grid-template-columns: repeat(3, var(--mini-cell));
+    grid-auto-rows: var(--mini-cell);
+    gap: 3px;
+    cursor: pointer;
+    opacity: 0.6;
+    transition: opacity var(--transition-speed) ease;
+}
+.stage-mini:hover { opacity: 1; }
+.stage-mini[hidden] { display: none; }
+.stage-mini img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    background-color: #eee;
+}
+
+/* --- ПОДПИСЬ ПОД ФОТО: название · счётчик --- */
+.section-bar {
+    position: relative;
+    flex: none;
+    margin-top: auto; /* всегда прижата к низу экрана, не зависит от высоты фото */
+    display: flex;
+    align-items: baseline;
+    gap: 24px;
+    width: 100%;
+    padding-top: 12px;
+    font-size: 14px;
+    letter-spacing: 0.05em;
+    text-transform: lowercase;
+    white-space: nowrap;
+    cursor: default;
+}
+
+.sb-counter,
+.sb-status,
+.sb-loading { opacity: 0.5; }
+.sb-status { overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.sb-status,
+.sb-loading { display: none; }
+
+/* кнопка thumbnails — в той же строке, у правого края */
+.sb-toggle {
+    margin-left: auto;
+    cursor: pointer;
+    user-select: none;
+    transition: opacity var(--transition-speed) ease;
+}
+.sb-toggle:hover { opacity: 0.5; }
+
+/* во время загрузки — мелькают имена файлов, как у Энтони */
+.section-bar.is-loading .sb-counter,
+.section-bar.is-loading .sb-toggle { display: none; }
+.section-bar.is-loading .sb-status,
+.section-bar.is-loading .sb-loading { display: inline; }
+
+.stage-empty {
+    font-size: 14px;
+    letter-spacing: 0.05em;
+    opacity: 0.5;
+    cursor: default;
+}
+
+/* --- СЕТКА ПРЕВЬЮ --- */
+.thumbs {
+    display: none;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    gap: 10px;
+    width: 100%;
+    cursor: default;
+}
+body.thumbs-open .thumbs { display: flex; }
+body.thumbs-open .stage-img,
+body.thumbs-open .stage-mini { display: none; }
+body.thumbs-open .viewer { cursor: default; }
+
+.thumbs img {
+    display: block;
+    height: 110px;
+    width: auto;
+    cursor: pointer;
+    background-color: #eee;
+    transition: opacity var(--transition-speed) ease;
+}
+.thumbs img:hover { opacity: 0.5; }
+.thumbs img.current {
+    outline: 1.5px solid var(--text-color);
+    outline-offset: 3px;
+}
+
+/* --- ТЕЛЕФОН: без превью следующего кадра, thumbnails — в строке под фото --- */
+@media (max-width: 768px) {
+    .viewer { padding: 0 15px 15px; }
+    .stage-mini { display: none; }
+    .section-bar { font-size: 13px; gap: 15px; padding-top: 10px; }
+    .thumbs { gap: 6px; }
+    .thumbs img { height: 80px; }
+}

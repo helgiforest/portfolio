@@ -193,6 +193,9 @@ body.is-loaded .thumb.loaded img { opacity: 1; }
     .viewer { padding: 0 15px 15px; }
     .stage-mini { display: none; }
     .section-bar { font-size: 13px; gap: 15px; padding-top: 10px; }
+    /* на телефоне открытое фото — по центру свободного места над нижней строкой */
+    .stage-img { margin: auto 0; align-self: center; }
+    body:not(.thumbs-open) .section-bar { margin-top: 0; }
     .thumbs { gap: 6px; }
     .thumb { --row-h: 100px; }
     body.thumbs-open .section-bar { padding-bottom: 15px; }

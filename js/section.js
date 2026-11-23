@@ -127,9 +127,18 @@ document.addEventListener('DOMContentLoaded', () => {
     // Ровные строки на всю ширину: ширина кадра пропорциональна его соотношению сторон (--r),
     // поэтому все кадры в строке одной высоты. Кадры «проявляются» по очереди.
     const thumbItems = photos.map((p, i) => {
-        const item = document.createElement('a');
+        // не <a href>: иначе браузер при наведении показывает ссылку внизу слева
+        // и закрывает ею строку «2025 · 71 frames»
+        const item = document.createElement('div');
         item.className = 'thumb';
-        item.href = `#${encodeURIComponent(p.file)}`;
+        item.setAttribute('role', 'button');
+        item.tabIndex = 0;
+        item.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                openPhoto(i);
+            }
+        });
         item.style.setProperty('--r', (p.w / p.h).toFixed(4));
         if (i < 30) item.style.setProperty('--d', `${i * 40}ms`); // первые кадры — с задержкой по очереди
 
@@ -148,7 +157,6 @@ document.addEventListener('DOMContentLoaded', () => {
         item.appendChild(t);
 
         item.addEventListener('click', (e) => {
-            e.preventDefault();
             e.stopPropagation(); // иначе клик дойдёт до просмотра и перелистнёт
             openPhoto(i);
         });
@@ -265,20 +273,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // --- ЗАГРУЗКА: сначала грузим все фото (как на главной), чтобы потом
-    // любой кадр открывался мгновенно. Пока грузится — внизу «loading NN%»
+    // любой кадр открывался мгновенно. Пока грузится — внизу «2025 loading»
     // и мелькают имена загруженных файлов (как у Энтони).
     const startedAt = performance.now();
     const MIN_LOADING_MS = 700;
     const MAX_LOADING_MS = 15000; // дольше не держим: показываем, остальное догружается в фоне
-    const loadingEl = bar.querySelector('.sb-loading');
 
     const queue = [
-        ...photos.map((p) => ({ src: url('thumb', p), name: p.file, weight: 1 })), // сначала превью — они лёгкие
-        ...photos.map((p) => ({ src: url('large', p), name: p.file, weight: 18 })), // большое фото ~ в 18 раз тяжелее
+        ...photos.map((p) => ({ src: url('thumb', p), name: p.file })), // сначала превью — они лёгкие
+        ...photos.map((p) => ({ src: url('large', p), name: p.file })),
     ];
-    const totalWeight = queue.reduce((sum, q) => sum + q.weight, 0);
     let loadedCount = 0;
-    let loadedWeight = 0;
     let revealed = false;
 
     // имена показываем по очереди не чаще раза в 60 мс — эффект «бегущих» файлов
@@ -295,11 +300,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const item = queue[next++];
             preload(item.src).then(() => {
                 loadedCount++;
-                loadedWeight += item.weight;
-                if (!revealed) {
-                    names.push(item.name);
-                    loadingEl.textContent = `loading ${Math.floor((loadedWeight / totalWeight) * 100)}%`;
-                }
+                if (!revealed) names.push(item.name);
                 if (loadedCount === queue.length) resolve();
                 pump();
             });

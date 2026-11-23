@@ -1,5 +1,6 @@
 /* Страницы разделов: archive / 2025 / 2026.
-   Одна большая фотография за раз, клик справа — дальше, слева — назад.
+   Открывается сеткой превью; клик по кадру — просмотр одной большой фотографии,
+   клик справа — дальше, слева — назад, Esc / «назад» в браузере — снова сетка.
    Внизу экрана (всегда, не зависит от фото) — строка: название, счётчик и справа кнопка thumbnails;
    над кнопкой — мини-сетка (значок галереи), клик открывает все превью. */
 
@@ -92,7 +93,7 @@ body.is-loaded .viewer { opacity: 1; }
 .sb-status,
 .sb-loading { display: none; }
 
-/* кнопка thumbnails — в той же строке, у правого края */
+/* кнопка show thumbnails — в той же строке, у правого края (только в просмотре) */
 .sb-toggle {
     margin-left: auto;
     cursor: pointer;
@@ -114,7 +115,9 @@ body.is-loaded .viewer { opacity: 1; }
     cursor: default;
 }
 
-/* --- СЕТКА ПРЕВЬЮ --- */
+/* --- СЕТКА ПРЕВЬЮ: главный вид раздела, как контактный лист --- */
+/* Ровные строки на всю ширину: ширина кадра пропорциональна соотношению сторон (--r),
+   поэтому кадры в строке одной высоты. ::after не даёт растянуть последнюю строку. */
 .thumbs {
     display: none;
     flex: 1;
@@ -122,34 +125,59 @@ body.is-loaded .viewer { opacity: 1; }
     overflow-y: auto;
     flex-wrap: wrap;
     align-content: flex-start;
-    gap: 10px;
+    gap: 12px;
     width: 100%;
     cursor: default;
+    scrollbar-width: none;
+}
+.thumbs::-webkit-scrollbar { display: none; }
+.thumbs::after {
+    content: '';
+    flex: 1000 1 0;
 }
 body.thumbs-open .thumbs { display: flex; }
 body.thumbs-open .stage-img,
-body.thumbs-open .stage-mini { display: none; }
+body.thumbs-open .stage-mini,
+body.thumbs-open .sb-counter,
+body.thumbs-open .sb-toggle { display: none; }
 body.thumbs-open .viewer { cursor: default; }
+.sb-total { display: none; opacity: 0.5; }
+body.thumbs-open .section-bar:not(.is-loading) .sb-total { display: inline; }
 
-.thumbs img {
+.thumb {
+    --row-h: 160px;
+    flex: var(--r) 1 calc(var(--r) * var(--row-h));
+    aspect-ratio: var(--r);
+    max-height: calc(var(--row-h) * 1.6);
+    overflow: hidden;
     display: block;
-    height: 110px;
-    width: auto;
+    background-color: rgba(17, 17, 17, 0.04);
     cursor: pointer;
-    background-color: #eee;
-    transition: opacity var(--transition-speed) ease;
-}
-.thumbs img:hover { opacity: 0.5; }
-.thumbs img.current {
-    outline: 1.5px solid var(--text-color);
-    outline-offset: 3px;
 }
 
-/* --- ТЕЛЕФОН: без превью следующего кадра, thumbnails — в строке под фото --- */
+/* проявление по очереди + наведение как в overview */
+.thumb img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transition:
+        opacity 0.8s ease var(--d, 0s),
+        transform 1.2s cubic-bezier(0.2, 0.5, 0.2, 1),
+        filter 0.8s ease;
+}
+body.is-loaded .thumb.loaded img { opacity: 1; }
+.thumb:hover img {
+    transform: scale(1.03);
+    filter: brightness(1.05);
+}
+
+/* --- ТЕЛЕФОН: без мини-сетки, строки пониже --- */
 @media (max-width: 768px) {
     .viewer { padding: 0 15px 15px; }
     .stage-mini { display: none; }
     .section-bar { font-size: 13px; gap: 15px; padding-top: 10px; }
     .thumbs { gap: 6px; }
-    .thumbs img { height: 80px; }
+    .thumb { --row-h: 100px; }
 }

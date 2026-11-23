@@ -10,7 +10,7 @@
         python3 tools/build_photos.py            # все разделы
         python3 tools/build_photos.py 2025       # только один
   3. Скрипт сам:
-     - делает маленькие превью images/<раздел>/thumb/*.webp (до 480px)
+     - делает маленькие превью images/<раздел>/thumb/*.webp (до 640px)
      - пересоздаёт превью только для новых/изменённых фото
      - удаляет превью, если фото удалено
      - пишет список фото в <раздел>/photos.js
@@ -32,7 +32,7 @@ except ImportError:
 
 ROOT = Path(__file__).resolve().parent.parent
 SECTIONS = ["archive", "2025", "2026"]
-THUMB_EDGE, THUMB_QUALITY = 480, 78
+THUMB_EDGE, THUMB_QUALITY = 640, 78
 EXTS = {".avif", ".webp", ".jpg", ".jpeg", ".png"}  # то, что браузер показывает сам
 WARN_EDGE = 2600       # больше — скорее всего забыл Resize to Fit при экспорте
 WARN_MB = 2

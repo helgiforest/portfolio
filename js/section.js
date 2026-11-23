@@ -157,11 +157,18 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // --- ПЕРЕКЛЮЧЕНИЕ СЕТКА ⇄ ПРОСМОТР ---
+    // В сетке скроллится вся страница; при открытии кадра запоминаем, где были,
+    // и возвращаемся туда же, когда снова показываем сетку.
+    if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+    let gridScrollY = 0;
     const setGrid = (open) => {
+        const wasOpen = gridOpen();
+        if (wasOpen && !open) gridScrollY = window.scrollY;
         document.body.classList.toggle('thumbs-open', open);
         if (open) {
-            thumbItems[current]?.scrollIntoView({ block: 'nearest' });
+            if (!wasOpen) window.scrollTo(0, gridScrollY);
         } else {
+            window.scrollTo(0, 0);
             fit();
         }
     };
@@ -257,17 +264,54 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.key === 'ArrowLeft') prev();
     });
 
-    // --- ЗАГРУЗКА: быстро мелькают имена файлов ---
+    // --- ЗАГРУЗКА: сначала грузим все фото (как на главной), чтобы потом
+    // любой кадр открывался мгновенно. Пока грузится — внизу «loading NN%»
+    // и мелькают имена загруженных файлов (как у Энтони).
     const startedAt = performance.now();
     const MIN_LOADING_MS = 700;
-    let flickIndex = 0;
+    const MAX_LOADING_MS = 15000; // дольше не держим: показываем, остальное догружается в фоне
+    const loadingEl = bar.querySelector('.sb-loading');
+
+    const queue = [
+        ...photos.map((p) => ({ src: url('thumb', p), name: p.file, weight: 1 })), // сначала превью — они лёгкие
+        ...photos.map((p) => ({ src: url('large', p), name: p.file, weight: 18 })), // большое фото ~ в 18 раз тяжелее
+    ];
+    const totalWeight = queue.reduce((sum, q) => sum + q.weight, 0);
+    let loadedCount = 0;
+    let loadedWeight = 0;
+    let revealed = false;
+
+    // имена показываем по очереди не чаще раза в 60 мс — эффект «бегущих» файлов
+    const names = [];
     const flick = setInterval(() => {
-        statusEl.textContent = photos[flickIndex++ % photos.length].file;
+        if (names.length) statusEl.textContent = names.shift();
     }, 60);
 
+    const loadAll = () => new Promise((resolve) => {
+        const PARALLEL = 6;
+        let next = 0;
+        const pump = () => {
+            if (next >= queue.length) return;
+            const item = queue[next++];
+            preload(item.src).then(() => {
+                loadedCount++;
+                loadedWeight += item.weight;
+                if (!revealed) {
+                    names.push(item.name);
+                    loadingEl.textContent = `loading ${Math.floor((loadedWeight / totalWeight) * 100)}%`;
+                }
+                if (loadedCount === queue.length) resolve();
+                pump();
+            });
+        };
+        for (let k = 0; k < PARALLEL; k++) pump();
+    });
+
     const reveal = () => {
+        if (revealed) return;
         const wait = Math.max(0, MIN_LOADING_MS - (performance.now() - startedAt));
         setTimeout(() => {
+            revealed = true;
             clearInterval(flick);
             bar.classList.remove('is-loading');
             document.body.classList.add('is-loaded');
@@ -275,8 +319,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }, wait);
     };
 
-    // Ссылка на конкретный кадр (#имя-файла) открывает сразу его.
-    // Обычный заход и обновление страницы (F5) — сетка.
+    // Ссылка на конкретный кадр (#имя-файла) открывает сразу его, остальное грузится в фоне.
+    // Обычный заход и обновление страницы (F5) — сетка, после загрузки всех фото.
     const navEntry = performance.getEntriesByType('navigation')[0];
     const isReload = navEntry && navEntry.type === 'reload';
     let fromHash = '';
@@ -286,17 +330,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const startIndex = photos.findIndex((p) => p.file === fromHash);
 
     if (startIndex !== -1) {
-        show(startIndex).then(reveal);
+        show(startIndex).then(() => {
+            reveal();
+            loadAll();
+        });
     } else {
         if (location.hash) history.replaceState(null, '', location.pathname);
         setGrid(true);
-        // ждём первые кадры сетки (но не дольше 2.5 с), потом показываем
-        const firstBatch = thumbItems.slice(0, 12).map((item) => new Promise((resolve) => {
-            if (item.classList.contains('loaded')) return resolve();
-            const img = item.querySelector('img');
-            img.addEventListener('load', resolve, { once: true });
-            img.addEventListener('error', resolve, { once: true });
-        }));
-        Promise.race([Promise.all(firstBatch), new Promise((r) => setTimeout(r, 2500))]).then(reveal);
+        Promise.race([loadAll(), new Promise((r) => setTimeout(r, MAX_LOADING_MS))]).then(reveal);
     }
 });

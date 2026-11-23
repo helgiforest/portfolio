@@ -33,10 +33,12 @@ body.section-page {
     padding: 0 20px 20px;
     box-sizing: border-box;
     cursor: pointer;
-    opacity: 0;
-    transition: opacity 0.5s ease;
 }
-body.is-loaded .viewer { opacity: 1; }
+/* пока всё грузится — видна только нижняя строка с «loading» и именами файлов;
+   превью сетки проявляются сами (см. .thumb img) */
+body:not(.is-loaded) .stage-img,
+body:not(.is-loaded) .stage-mini,
+body:not(.is-loaded) .thumbs { visibility: hidden; }
 
 /* размер фото считает js/section.js, чтобы подпись была сразу под ним */
 .stage-img {
@@ -120,22 +122,35 @@ body.is-loaded .viewer { opacity: 1; }
    поэтому кадры в строке одной высоты. ::after не даёт растянуть последнюю строку. */
 .thumbs {
     display: none;
-    flex: 1;
-    min-height: 0;
-    overflow-y: auto;
+    flex: 1 0 auto;
     flex-wrap: wrap;
     align-content: flex-start;
     gap: 12px;
     width: 100%;
     cursor: default;
-    scrollbar-width: none;
 }
-.thumbs::-webkit-scrollbar { display: none; }
 .thumbs::after {
     content: '';
     flex: 1000 1 0;
 }
 body.thumbs-open .thumbs { display: flex; }
+
+/* в сетке скроллится вся страница (откуда угодно, как обычный сайт),
+   а строка «2025 · 71 frames» прилипает к низу экрана */
+body.section-page.thumbs-open {
+    height: auto;
+    min-height: 100vh;
+    min-height: 100svh;
+    overflow: visible;
+}
+body.thumbs-open .viewer { padding-bottom: 0; }
+body.thumbs-open .section-bar {
+    position: sticky;
+    bottom: 0;
+    z-index: 5;
+    padding-bottom: 20px;
+    background-color: var(--bg-color);
+}
 body.thumbs-open .stage-img,
 body.thumbs-open .stage-mini,
 body.thumbs-open .sb-counter,
@@ -180,4 +195,5 @@ body.is-loaded .thumb.loaded img { opacity: 1; }
     .section-bar { font-size: 13px; gap: 15px; padding-top: 10px; }
     .thumbs { gap: 6px; }
     .thumb { --row-h: 100px; }
+    body.thumbs-open .section-bar { padding-bottom: 15px; }
 }

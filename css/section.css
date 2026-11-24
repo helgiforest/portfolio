@@ -40,12 +40,15 @@ body:not(.is-loaded) .stage-img,
 body:not(.is-loaded) .stage-mini,
 body:not(.is-loaded) .thumbs { visibility: hidden; }
 
-/* размер фото считает js/section.js, чтобы подпись была сразу под ним */
+/* размер фото считает js/section.js; фото — по центру свободного места над нижней строкой */
 .stage-img {
     display: block;
     flex: none;
     max-width: 100%;
+    margin: auto 0;
+    align-self: center;
 }
+body:not(.thumbs-open) .section-bar { margin-top: 0; }
 .stage-img:not([src]) { visibility: hidden; }
 
 /* мини-сетка над кнопкой thumbnails — значок галереи, клик открывает все превью */
@@ -213,9 +216,6 @@ body.is-loaded .thumb.loaded img { opacity: 1; }
     .viewer { padding: 0 15px 15px; }
     .stage-mini { display: none; }
     .section-bar { font-size: 13px; gap: 15px; padding-top: 10px; }
-    /* на телефоне открытое фото — по центру свободного места над нижней строкой */
-    .stage-img { margin: auto 0; align-self: center; }
-    body:not(.thumbs-open) .section-bar { margin-top: 0; }
     .thumbs { gap: 6px; }
     .thumb { --row-h: 100px; }
     body.thumbs-open .section-bar { padding-bottom: 10px; }

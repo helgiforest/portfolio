@@ -96,7 +96,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const sideGap = isDesktop() && photos.length > 1
             ? parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--side-gap')) || 0
             : 0;
-        const availW = viewer.clientWidth - padX - sideGap;
+        // фото по центру — поле под мини-сетку справа держим и слева, чтобы было симметрично
+        const availW = viewer.clientWidth - padX - sideGap * 2;
         const availH = viewer.clientHeight - padY - bar.offsetHeight;
         const scale = Math.max(0, Math.min(availW / p.w, availH / p.h, 1));
         mainImg.style.width = `${Math.floor(p.w * scale)}px`;

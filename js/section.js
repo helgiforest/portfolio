@@ -280,13 +280,18 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('viewer-next').addEventListener('click', (e) => { e.stopPropagation(); next(); });
 
     // --- КЛИКИ / ТАПЫ В ПРОСМОТРЕ ---
-    // по фото: правая половина — дальше, левая — назад; по пустому месту — назад к сетке (как на главной)
+    // по фото: правая половина — дальше, левая — назад; по пустому месту — назад к сетке (как на главной).
+    // На телефоне узкие поля слева и справа от фото (на всю его высоту) тоже листают —
+    // к сетке ведут только поля над и под фото.
     let lastSwipeAt = 0;
+    const isPhone = () => window.matchMedia('(max-width: 768px)').matches;
 
     viewer.addEventListener('click', (e) => {
         if (gridOpen() || isZoomed() || e.target.closest('.thumbs, .lb-controls-corner')) return;
         if (Date.now() - lastSwipeAt < 400) return;
-        if (e.target !== mainImg) {
+        const r = mainImg.getBoundingClientRect();
+        const besidePhoto = isPhone() && e.clientY >= r.top && e.clientY <= r.bottom;
+        if (e.target !== mainImg && !besidePhoto) {
             backToGrid();
             return;
         }

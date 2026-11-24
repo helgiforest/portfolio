@@ -136,20 +136,40 @@ body:not(.is-loaded) .thumbs { visibility: hidden; }
 body.thumbs-open .thumbs { display: flex; }
 
 /* в сетке скроллится вся страница (откуда угодно, как обычный сайт),
-   а строка «2025 · 71 frames» прилипает к низу экрана */
+   а строка «2025 · 71 frames» — сверху (js/section.js переносит её):
+   на широком экране в шапке по центру, на узком — над превью */
 body.section-page.thumbs-open {
     height: auto;
     min-height: 100vh;
     min-height: 100svh;
     overflow: visible;
 }
-body.thumbs-open .viewer { padding-bottom: 0; }
 body.thumbs-open .section-bar {
-    position: sticky;
-    bottom: 0;
-    z-index: 5;
-    padding-bottom: 20px;
-    background-color: var(--bg-color);
+    margin-top: 0;
+    padding-top: 0;
+    padding-bottom: 12px;
+}
+
+/* в шапке: логотип слева, строка ровно по центру, меню справа */
+body.bar-in-header .main-header {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+}
+body.bar-in-header .main-header .logo { grid-column: 1; justify-self: start; }
+body.bar-in-header .main-header .nav-links { grid-column: 3; justify-self: end; }
+body.bar-in-header .main-header .section-bar {
+    grid-column: 2;
+    grid-row: 1;
+    width: auto;
+    max-width: 40vw;
+    padding: 0;
+}
+/* имена файлов при загрузке — в рамке постоянной ширины, чтобы строка не дёргалась */
+.section-bar.is-loading .sb-status {
+    display: inline-block;
+    width: 15ch;
+    text-align: left;
 }
 body.thumbs-open .stage-img,
 body.thumbs-open .stage-mini,
@@ -198,5 +218,5 @@ body.is-loaded .thumb.loaded img { opacity: 1; }
     body:not(.thumbs-open) .section-bar { margin-top: 0; }
     .thumbs { gap: 6px; }
     .thumb { --row-h: 100px; }
-    body.thumbs-open .section-bar { padding-bottom: 15px; }
+    body.thumbs-open .section-bar { padding-bottom: 10px; }
 }

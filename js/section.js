@@ -196,11 +196,32 @@ document.addEventListener('DOMContentLoaded', () => {
     // В сетке скроллится вся страница; при открытии кадра запоминаем, где были,
     // и возвращаемся туда же, когда снова показываем сетку.
     if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+
+    // Строка «2025 · 71 frames» / «2025 loading …»: в сетке она сверху —
+    // на широком экране в шапке по центру, на узком над превью.
+    // В просмотре фото — снизу под кадром (там счётчик и show thumbnails).
+    const header = document.querySelector('.main-header');
+    const wideHeader = window.matchMedia('(min-width: 900px)');
+    const placeBar = () => {
+        const grid = gridOpen();
+        const inHeader = grid && wideHeader.matches;
+        if (inHeader) {
+            if (bar.parentNode !== header) header.appendChild(bar);
+        } else if (grid) {
+            if (bar.nextElementSibling !== thumbsEl) viewer.insertBefore(bar, thumbsEl);
+        } else if (bar.previousElementSibling !== thumbsEl) {
+            thumbsEl.after(bar);
+        }
+        document.body.classList.toggle('bar-in-header', inHeader);
+    };
+    wideHeader.addEventListener('change', placeBar);
+
     let gridScrollY = 0;
     const setGrid = (open) => {
         const wasOpen = gridOpen();
         if (wasOpen && !open) gridScrollY = window.scrollY;
         document.body.classList.toggle('thumbs-open', open);
+        placeBar();
         if (open) {
             if (!wasOpen) window.scrollTo(0, gridScrollY);
         } else {

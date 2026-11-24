@@ -33,37 +33,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 3. БЕСШОВНЫЙ ПРЕЛОАДЕР
     let flashIndex = 0;
-    let imagesLoadedTotal = 0;
     const totalImagesCount = imgs.length;
     const preloaderStartTime = Date.now();
     const MIN_PRELOADER_MS = isReload ? 1500 : 2600; // на обновлении держим короче, на первом заходе — как и раньше
 
+    // в прелоадере мелькают только уже скачанные фото
+    const loadedImgs = [];
     const nextFlashImage = () => {
-        if (preloader.style.visibility === 'hidden') return;
-
-        if (imgs.length > 0) {
-            let randomIndex = Math.floor(Math.random() * imgs.length);
-            if (imgs.length > 1 && randomIndex === flashIndex) {
-                randomIndex = (randomIndex + 1) % imgs.length;
-            }
-            flashIndex = randomIndex;
-
-            const nextSrc = imgs[flashIndex].src;
-            const imgLoader = new Image();
-            imgLoader.src = nextSrc;
-
-            imgLoader.onload = () => {
-                preloaderImg.src = nextSrc;
-                preloaderImg.classList.add('loaded');
-            };
+        if (preloader.style.visibility === 'hidden' || !loadedImgs.length) return;
+        let randomIndex = Math.floor(Math.random() * loadedImgs.length);
+        if (loadedImgs.length > 1 && randomIndex === flashIndex) {
+            randomIndex = (randomIndex + 1) % loadedImgs.length;
         }
+        flashIndex = randomIndex;
+        preloaderImg.src = loadedImgs[flashIndex].src;
+        preloaderImg.classList.add('loaded');
     };
 
     const flashInterval = setInterval(nextFlashImage, 1000);
-    nextFlashImage();
 
-    // 4. Контроль полной загрузки сайта
+    // 4. Показываем галерею, когда загрузились фото первого экрана —
+    // остальные догружаются и проявляются сами (место под них уже занято,
+    // поэтому ничего не прыгает). Потом в фоне качаются большие версии для лайтбокса.
+    let revealed = false;
     const revealGallery = () => {
+        if (revealed) return;
+        revealed = true;
         clearInterval(flashInterval);
 
         setTimeout(() => {
@@ -76,27 +71,59 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 800);
     };
 
-    const checkAllImagesLoaded = () => {
-        imagesLoadedTotal++;
-        if (imagesLoadedTotal >= totalImagesCount) {
-            const elapsed = Date.now() - preloaderStartTime;
-            const remaining = Math.max(0, MIN_PRELOADER_MS - elapsed);
+    // размеры кадра известны заранее (width/height в HTML) — место под фото есть ещё до загрузки
+    imgs.forEach((img) => {
+        img.style.aspectRatio = `${img.getAttribute('width')} / ${img.getAttribute('height')}`;
+    });
+    // какие фото видны на первом экране (галерея пока прозрачная, но уже разложена)
+    const firstScreen = imgs.filter((img) => img.getBoundingClientRect().top < window.innerHeight);
+    const rest = imgs.filter((img) => !firstScreen.includes(img));
+
+    let firstLeft = firstScreen.length;
+    let allLeft = totalImagesCount;
+    const onDone = (img, ok) => {
+        if (ok) {
+            img.classList.add('loaded');
+            loadedImgs.push(img);
+            if (loadedImgs.length === 1) nextFlashImage();
+        }
+        if (firstScreen.includes(img) && --firstLeft === 0) {
+            const remaining = Math.max(0, MIN_PRELOADER_MS - (Date.now() - preloaderStartTime));
             setTimeout(revealGallery, remaining);
         }
+        if (--allLeft === 0) preloadFull();
     };
 
     if (totalImagesCount > 0) {
-        imgs.forEach(img => {
-            if (img.complete) {
-                checkAllImagesLoaded();
-            } else {
-                img.addEventListener('load', checkAllImagesLoaded);
-                img.addEventListener('error', checkAllImagesLoaded);
-            }
+        // сначала первый экран, потом остальное
+        [...firstScreen, ...rest].forEach((img, k) => {
+            img.fetchPriority = k < firstScreen.length ? 'high' : 'low';
+            img.addEventListener('load', () => onDone(img, true), { once: true });
+            img.addEventListener('error', () => onDone(img, false), { once: true });
+            img.src = img.dataset.src;
         });
+        if (!firstScreen.length) revealGallery();
+        // на совсем медленном интернете дольше 12 секунд не держим
+        setTimeout(revealGallery, 12000);
     } else {
         preloader.style.display = 'none';
     }
+
+    // Большие версии для лайтбокса — в фоне, по три за раз, когда сетка уже скачана.
+    // Только на компьютере: на телефоне лайтбокс не открывается, незачем тратить трафик.
+    const preloadFull = () => {
+        if (window.innerWidth <= 768) return;
+        const queue = imgs.map((img) => img.dataset.full).filter(Boolean);
+        const pump = () => {
+            const src = queue.shift();
+            if (!src) return;
+            const im = new Image();
+            im.fetchPriority = 'low';
+            im.onload = im.onerror = pump;
+            im.src = src;
+        };
+        for (let k = 0; k < 3; k++) pump();
+    };
 
     // --- ЛАЙТБОКС ---
     const showImage = (index) => {

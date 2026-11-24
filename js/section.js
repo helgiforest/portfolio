@@ -61,8 +61,18 @@ document.addEventListener('DOMContentLoaded', () => {
         return cache.get(src);
     };
 
-    // кадр, который человек открыл и ждёт: пока он качается, фоновая загрузка не берёт новые файлы
+    // Кадр, который человек открыл, и соседние: пока они качаются, фоновая загрузка стоит,
+    // а то, что она уже качала, обрывается (докачается потом) — весь интернет открытому кадру.
     let urgent = null;
+    const background = new Map(); // src → AbortController текущих фоновых загрузок
+    const stopBackground = (keep) => {
+        background.forEach((ctrl, src) => { if (!keep.includes(src)) ctrl.abort(); });
+    };
+    const makeUrgent = (wait, keep) => {
+        urgent = wait;
+        stopBackground(keep);
+        wait.then(() => { if (urgent === wait) urgent = null; });
+    };
 
     // картинка загружена и раскодирована — можно показывать без мигания.
     // decode() ждём не дольше 300 мс: в неактивной вкладке браузер может его откладывать.
@@ -110,18 +120,21 @@ document.addEventListener('DOMContentLoaded', () => {
         // на долю секунды растягивает старую картинку под размеры новой.
         const bigSrc = url('large', p);
         const big = stageImg(bigSrc, 'high');
+        const neighbourSrcs = [1, -1, 2].map((d) => url('large', photos[wrap(i + d)]));
         const ready = decoded(big).then(() => {
             if (my !== token) return; // пока грузилось, уже перелистнули дальше
             swapTo(big);
-            [1, -1, 2].forEach((d) => preload(url('large', photos[wrap(i + d)])));
         });
+        // сразу за открытым кадром — соседние, чтобы листать без ожидания
+        const withNeighbours = ready.then(() => {
+            if (my === token) return Promise.all(neighbourSrcs.map((s) => preload(s)));
+        });
+        const keep = [bigSrc, ...neighbourSrcs];
+        if (keep.some((s) => !done.has(s))) makeUrgent(withNeighbours, keep);
         if (done.has(bigSrc)) return ready;
 
-        // Большой файл ещё не скачан. Фоновая загрузка уступает ему дорогу,
-        // а пока он качается, показываем превью этого же кадра (оно уже есть),
-        // растянутое до размера фото, — через миг его сменит резкая версия.
-        urgent = ready;
-        ready.then(() => { if (urgent === ready) urgent = null; });
+        // Большой файл ещё не скачан: пока он качается, показываем превью этого же кадра
+        // (оно уже есть), растянутое до размера фото, — через миг его сменит резкая версия.
         const thumbSrc = url('thumb', p);
         if (!done.has(thumbSrc)) return ready;
         const small = stageImg(thumbSrc);
@@ -356,17 +369,37 @@ document.addEventListener('DOMContentLoaded', () => {
         if (names.length) statusEl.textContent = names.shift();
     }, 60);
 
+    // Фоновая загрузка — через fetch: её можно оборвать, когда человек открыл кадр.
+    // Скачанное ложится в кэш браузера, и <img> потом берёт файл оттуда.
+    const fetchToCache = (src) => {
+        const ctrl = new AbortController();
+        background.set(src, ctrl);
+        return fetch(src, { signal: ctrl.signal, priority: 'low' })
+            .then((r) => (r.ok ? r.blob().then(() => 'ok') : 'error'))
+            .catch(() => (ctrl.signal.aborted ? 'aborted' : 'error'))
+            .finally(() => background.delete(src));
+    };
+
     const loadAll = () => new Promise((resolve) => {
         const PARALLEL = 6;
-        let next = 0;
+        const total = queue.length;
+        const count = (item) => {
+            loadedCount++;
+            if (!revealed) names.push(item.name);
+            if (loadedCount === total) resolve();
+        };
         const pump = () => {
-            if (next >= queue.length) return;
+            if (!queue.length) return;
             if (urgent) { urgent.then(pump); return; } // сначала то, что открыли
-            const item = queue[next++];
-            preload(item.src, 'low').then(() => {
-                loadedCount++;
-                if (!revealed) names.push(item.name);
-                if (loadedCount === queue.length) resolve();
+            const item = queue.shift();
+            if (done.has(item.src)) { count(item); pump(); return; } // уже есть (этот кадр открывали)
+            fetchToCache(item.src).then((status) => {
+                if (status === 'aborted') {
+                    queue.unshift(item); // оборвали ради открытого кадра — докачаем потом
+                } else {
+                    if (status === 'ok') done.add(item.src);
+                    count(item);
+                }
                 pump();
             });
         };

@@ -46,8 +46,12 @@ document.addEventListener('DOMContentLoaded', () => {
     totalEl.textContent = `${photos.length} frames`;
 
     // --- ПРЕДЗАГРУЗКА ---
-    const cache = new Map();
-    const done = new Set(); // уже скачанные файлы
+    // Каждый файл качается один раз в свой <img>, и при просмотре показывается
+    // именно он — уже скачанный. Так не нужно второй раз идти в сеть или кэш браузера
+    // (после Cmd+Shift+R браузер кэш не читает и качал бы фото заново).
+    const cache = new Map();    // src → обещание «скачан»
+    const elements = new Map(); // src → сам <img>
+    const done = new Set();     // уже скачанные файлы
     const preload = (src, priority) => {
         if (!cache.has(src)) {
             cache.set(src, new Promise((resolve) => {
@@ -56,21 +60,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 im.onload = () => { done.add(src); resolve(); };
                 im.onerror = () => resolve();
                 im.src = src;
+                elements.set(src, im);
             }));
         }
         return cache.get(src);
     };
 
-    // Кадр, который человек открыл, и соседние: пока они качаются, фоновая загрузка стоит,
-    // а то, что она уже качала, обрывается (докачается потом) — весь интернет открытому кадру.
+    // Кадр, который человек открыл (если ещё не скачан), и соседние:
+    // пока они качаются, фоновая загрузка не берёт новые файлы.
     let urgent = null;
-    const background = new Map(); // src → AbortController текущих фоновых загрузок
-    const stopBackground = (keep) => {
-        background.forEach((ctrl, src) => { if (!keep.includes(src)) ctrl.abort(); });
-    };
-    const makeUrgent = (wait, keep) => {
+    const makeUrgent = (wait) => {
         urgent = wait;
-        stopBackground(keep);
         wait.then(() => { if (urgent === wait) urgent = null; });
     };
 
@@ -129,8 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const withNeighbours = ready.then(() => {
             if (my === token) return Promise.all(neighbourSrcs.map((s) => preload(s)));
         });
-        const keep = [bigSrc, ...neighbourSrcs];
-        if (keep.some((s) => !done.has(s))) makeUrgent(withNeighbours, keep);
+        if ([bigSrc, ...neighbourSrcs].some((s) => !done.has(s))) makeUrgent(withNeighbours);
         if (done.has(bigSrc)) return ready;
 
         // Большой файл ещё не скачан: пока он качается, показываем превью этого же кадра
@@ -143,18 +142,20 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
+    // <img> для просмотра — тот самый, в который файл уже скачан (или качается)
     function stageImg(src, priority) {
-        const img = new Image();
+        preload(src, priority);
+        const img = elements.get(src);
         img.className = 'stage-img';
         img.id = 'stage-img';
         img.alt = '';
-        if (priority) img.fetchPriority = priority;
-        img.src = src;
         return img;
     }
     function swapTo(img) {
-        mainImg.replaceWith(img);
-        mainImg = img;
+        if (img !== mainImg) {
+            mainImg.replaceWith(img);
+            mainImg = img;
+        }
         fit();
     }
 
@@ -349,12 +350,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.key === 'ArrowLeft') prev();
     });
 
-    // --- ЗАГРУЗКА: сначала грузим все фото (как на главной), чтобы потом
-    // любой кадр открывался мгновенно. Пока грузится — внизу «2025 loading»
-    // и мелькают имена загруженных файлов (как у Энтони).
+    // --- ЗАГРУЗКА: сетку показываем, только когда скачаны ВСЕ фото в полном размере —
+    // открытие дольше, зато потом любой кадр открывается сразу резким.
+    // Пока грузится — «2025 loading» и мелькают имена загруженных файлов (как у Энтони).
     const startedAt = performance.now();
     const MIN_LOADING_MS = 700;
-    const MAX_LOADING_MS = 15000; // дольше не держим: показываем, остальное догружается в фоне
+    const MAX_LOADING_MS = 60000; // предохранитель на совсем плохую сеть: остальное догрузится в фоне
 
     const queue = [
         ...photos.map((p) => ({ src: url('thumb', p), name: p.file })), // сначала превью — они лёгкие
@@ -369,37 +370,17 @@ document.addEventListener('DOMContentLoaded', () => {
         if (names.length) statusEl.textContent = names.shift();
     }, 60);
 
-    // Фоновая загрузка — через fetch: её можно оборвать, когда человек открыл кадр.
-    // Скачанное ложится в кэш браузера, и <img> потом берёт файл оттуда.
-    const fetchToCache = (src) => {
-        const ctrl = new AbortController();
-        background.set(src, ctrl);
-        return fetch(src, { signal: ctrl.signal, priority: 'low' })
-            .then((r) => (r.ok ? r.blob().then(() => 'ok') : 'error'))
-            .catch(() => (ctrl.signal.aborted ? 'aborted' : 'error'))
-            .finally(() => background.delete(src));
-    };
-
     const loadAll = () => new Promise((resolve) => {
         const PARALLEL = 6;
         const total = queue.length;
-        const count = (item) => {
-            loadedCount++;
-            if (!revealed) names.push(item.name);
-            if (loadedCount === total) resolve();
-        };
         const pump = () => {
             if (!queue.length) return;
             if (urgent) { urgent.then(pump); return; } // сначала то, что открыли
             const item = queue.shift();
-            if (done.has(item.src)) { count(item); pump(); return; } // уже есть (этот кадр открывали)
-            fetchToCache(item.src).then((status) => {
-                if (status === 'aborted') {
-                    queue.unshift(item); // оборвали ради открытого кадра — докачаем потом
-                } else {
-                    if (status === 'ok') done.add(item.src);
-                    count(item);
-                }
+            preload(item.src, 'low').then(() => {
+                loadedCount++;
+                if (!revealed) names.push(item.name);
+                if (loadedCount === total) resolve();
                 pump();
             });
         };

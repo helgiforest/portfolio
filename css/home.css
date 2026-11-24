@@ -120,36 +120,21 @@
 }
 
 #lb-container {
-    width: 90%;
-    height: 85vh;
+    position: absolute;
+    inset: 0;
     display: flex;
     justify-content: center;
     align-items: center;
 }
 
+/* размер фото считает js/viewer-fit.js (по центру, не под кнопками в углу) */
 .lightbox-content {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
+    display: block;
     opacity: 0;
     transition: opacity 0.3s ease-in-out;
 }
 
-.lb-controls-corner {
-    position: absolute;
-    bottom: 40px;
-    right: 40px;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 12px;
-}
-
-.lb-counter { font-size: 13px; letter-spacing: 0.05em; opacity: 0.4; }
-.lb-nav-group { display: flex; gap: 15px; align-items: center; }
-.lb-text-btn { font-size: 14px; text-transform: lowercase; cursor: pointer; user-select: none; }
-.lb-text-btn:hover { opacity: 0.5; }
-.lb-separator { opacity: 0.3; }
+/* кнопки в углу и мини-сетка — общие, в css/base.css */
 
 @media (max-width: 768px) {
     .frauki-style-gallery { column-count: 1; padding: 10px; }

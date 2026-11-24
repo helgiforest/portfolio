@@ -150,7 +150,22 @@ document.addEventListener('DOMContentLoaded', () => {
         else img.onload = () => { img.style.opacity = '1'; };
         lbContainer.appendChild(img);
         lbCounter.textContent = `${currentIndex + 1} / ${imgs.length}`;
+        fitLightbox();
     };
+
+    // размер фото: по центру, как можно крупнее, но не под кнопками в углу (js/viewer-fit.js)
+    const lbControls = document.getElementById('lb-controls');
+    const fitLightbox = () => {
+        const img = lbContainer.querySelector('img');
+        if (!img || lb.style.display !== 'flex') return;
+        const grid = imgs[currentIndex];
+        const pw = img.naturalWidth || +grid.getAttribute('width');
+        const ph = img.naturalHeight || +grid.getAttribute('height');
+        const [w, h] = window.fitPhoto(pw, ph, window.innerWidth, window.innerHeight, lbControls);
+        img.style.width = `${w}px`;
+        img.style.height = `${h}px`;
+    };
+    window.addEventListener('resize', fitLightbox);
 
     const closeLightbox = () => {
         lb.style.display = 'none';
@@ -172,7 +187,14 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('lb-next').onclick = (e) => { e.stopPropagation(); showImage(currentIndex + 1); };
     document.getElementById('lb-prev').onclick = (e) => { e.stopPropagation(); showImage(currentIndex - 1); };
     document.getElementById('lb-close').onclick = closeLightbox;
-    lb.onclick = (e) => { if (e.target === lb || e.target === lbContainer) closeLightbox(); };
+    // клик по фото: правая половина экрана — дальше, левая — назад; по пустому месту — к сетке
+    lb.onclick = (e) => {
+        if (e.target.classList.contains('lightbox-content')) {
+            showImage(currentIndex + (e.clientX > window.innerWidth / 2 ? 1 : -1));
+        } else if (e.target === lb || e.target === lbContainer) {
+            closeLightbox();
+        }
+    };
 
     document.addEventListener('keydown', (e) => {
         if (lb.style.display !== 'flex') return;

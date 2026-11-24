@@ -1,13 +1,8 @@
 /* Страницы разделов: archive / 2025 / 2026.
-   Открывается сеткой превью; клик по кадру — просмотр одной большой фотографии,
-   клик справа — дальше, слева — назад, Esc / «назад» в браузере — снова сетка.
-   Внизу экрана (всегда, не зависит от фото) — строка: название, счётчик и справа кнопка thumbnails;
-   над кнопкой — мини-сетка (значок галереи), клик открывает все превью. */
-
-:root {
-    --mini-cell: 20px;  /* клетка мини-сетки над thumbnails */
-    --side-gap: 140px;  /* место справа под мини-сетку и кнопку thumbnails */
-}
+   Открывается сеткой превью; клик по кадру — просмотр, такой же, как на главной:
+   фото по центру экрана без шапки, справа внизу счётчик, prev / next
+   и show thumbnails (кнопки — общие, в css/base.css). Клик по фото: справа — дальше,
+   слева — назад; по пустому месту, Esc или «назад» в браузере — снова сетка. */
 
 body.section-page {
     height: 100vh;
@@ -19,7 +14,7 @@ body.section-page {
 
 .section-page .main-header { flex: none; width: 100%; }
 
-/* --- ОБЛАСТЬ ПРОСМОТРА --- */
+/* --- ОБЛАСТЬ СТРАНИЦЫ: в ней сетка, а в режиме просмотра — фото на весь экран --- */
 .viewer {
     flex: 1;
     min-height: 0;
@@ -32,125 +27,66 @@ body.section-page {
     margin: 0 auto;
     padding: 0 20px 20px;
     box-sizing: border-box;
-    cursor: pointer;
 }
-/* пока всё грузится — видна только нижняя строка с «loading» и именами файлов;
-   превью сетки проявляются сами (см. .thumb img) */
-body:not(.is-loaded) .stage-img,
-body:not(.is-loaded) .stage-mini,
-body:not(.is-loaded) .thumbs { visibility: hidden; }
 
-/* размер фото считает js/section.js; фото — по центру свободного места над нижней строкой */
+/* --- ПРОСМОТР ОДНОГО ФОТО: как лайтбокс на главной --- */
+body.section-page:not(.thumbs-open) .main-header,
+body.section-page:not(.thumbs-open) .section-bar { display: none; }
+body.section-page:not(.thumbs-open) .viewer {
+    position: fixed;
+    inset: 0;
+    max-width: none;
+    padding: 0;
+    align-items: center;
+    justify-content: center;
+}
+/* размер фото считает js/viewer-fit.js: по центру и не под кнопками в углу */
 .stage-img {
     display: block;
     flex: none;
-    max-width: 100%;
-    margin: auto 0;
-    align-self: center;
 }
-body:not(.thumbs-open) .section-bar { margin-top: 0; }
 .stage-img:not([src]) { visibility: hidden; }
+body.thumbs-open .stage-img,
+body.thumbs-open .lb-controls-corner { display: none; }
 
-/* мини-сетка над кнопкой thumbnails — значок галереи, клик открывает все превью */
-.stage-mini {
-    position: absolute;
-    right: 0;
-    bottom: calc(100% + 10px);
-    display: grid;
-    grid-template-columns: repeat(3, var(--mini-cell));
-    grid-auto-rows: var(--mini-cell);
-    gap: 3px;
-    cursor: pointer;
-    opacity: 0.6;
-    transition: opacity var(--transition-speed) ease;
-}
-.stage-mini:hover { opacity: 1; }
-.stage-mini[hidden] { display: none; }
-.stage-mini img {
-    display: block;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    background-color: #eee;
-}
-
-/* --- ПОДПИСЬ ПОД ФОТО: название · счётчик --- */
-.section-bar {
-    position: relative;
-    flex: none;
-    margin-top: auto; /* всегда прижата к низу экрана, не зависит от высоты фото */
-    display: flex;
-    align-items: baseline;
-    gap: 24px;
-    width: 100%;
-    padding-top: 12px;
-    font-size: 14px;
-    letter-spacing: 0.05em;
-    text-transform: lowercase;
-    white-space: nowrap;
-    cursor: default;
-}
-
-.sb-counter,
-.sb-status,
-.sb-loading { opacity: 0.5; }
-.sb-status { overflow: hidden; text-overflow: ellipsis; min-width: 0; }
-.sb-status,
-.sb-loading { display: none; }
-
-/* кнопка show thumbnails — в той же строке, у правого края (только в просмотре) */
-.sb-toggle {
-    margin-left: auto;
-    cursor: pointer;
-    user-select: none;
-    transition: opacity var(--transition-speed) ease;
-}
-.sb-toggle:hover { opacity: 0.5; }
-
-/* во время загрузки — мелькают имена файлов, как у Энтони */
-.section-bar.is-loading .sb-counter,
-.section-bar.is-loading .sb-toggle { display: none; }
-.section-bar.is-loading .sb-status,
-.section-bar.is-loading .sb-loading { display: inline; }
+/* пока всё грузится — видна только строка «loading» с именами файлов */
+body:not(.is-loaded) .stage-img,
+body:not(.is-loaded) .lb-controls-corner,
+body:not(.is-loaded) .thumbs { visibility: hidden; }
 
 .stage-empty {
     font-size: 14px;
     letter-spacing: 0.05em;
     opacity: 0.5;
-    cursor: default;
 }
 
-/* --- СЕТКА ПРЕВЬЮ: главный вид раздела, как контактный лист --- */
-/* Ровные строки на всю ширину: ширина кадра пропорциональна соотношению сторон (--r),
-   поэтому кадры в строке одной высоты. ::after не даёт растянуть последнюю строку. */
-.thumbs {
-    display: none;
-    flex: 1 0 auto;
-    flex-wrap: wrap;
-    align-content: flex-start;
-    gap: 12px;
+/* --- СТРОКА «2025 · 71 frames» / «2025 loading …» (только в сетке) ---
+   js/section.js переносит её: на широком экране — в шапку по центру, на узком — над превью */
+.section-bar {
+    flex: none;
+    display: flex;
+    align-items: baseline;
+    gap: 24px;
     width: 100%;
-    cursor: default;
-}
-.thumbs::after {
-    content: '';
-    flex: 1000 1 0;
-}
-body.thumbs-open .thumbs { display: flex; }
-
-/* в сетке скроллится вся страница (откуда угодно, как обычный сайт),
-   а строка «2025 · 71 frames» — сверху (js/section.js переносит её):
-   на широком экране в шапке по центру, на узком — над превью */
-body.section-page.thumbs-open {
-    height: auto;
-    min-height: 100vh;
-    min-height: 100svh;
-    overflow: visible;
-}
-body.thumbs-open .section-bar {
-    margin-top: 0;
-    padding-top: 0;
     padding-bottom: 12px;
+    font-size: 14px;
+    letter-spacing: 0.05em;
+    text-transform: lowercase;
+    white-space: nowrap;
+}
+.sb-total,
+.sb-status,
+.sb-loading { opacity: 0.5; }
+.sb-status { overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.sb-status,
+.sb-loading { display: none; }
+/* во время загрузки — мелькают имена файлов (в рамке постоянной ширины, чтобы строка не дёргалась) */
+.section-bar.is-loading .sb-total { display: none; }
+.section-bar.is-loading .sb-loading { display: inline; }
+.section-bar.is-loading .sb-status {
+    display: inline-block;
+    width: 15ch;
+    text-align: left;
 }
 
 /* в шапке: логотип слева, строка ровно по центру, меню справа */
@@ -168,19 +104,31 @@ body.bar-in-header .main-header .section-bar {
     max-width: 40vw;
     padding: 0;
 }
-/* имена файлов при загрузке — в рамке постоянной ширины, чтобы строка не дёргалась */
-.section-bar.is-loading .sb-status {
-    display: inline-block;
-    width: 15ch;
-    text-align: left;
+
+/* --- СЕТКА ПРЕВЬЮ: главный вид раздела, как контактный лист --- */
+/* Ровные строки на всю ширину: ширина кадра пропорциональна соотношению сторон (--r),
+   поэтому кадры в строке одной высоты. ::after не даёт растянуть последнюю строку. */
+.thumbs {
+    display: none;
+    flex: 1 0 auto;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    gap: 12px;
+    width: 100%;
 }
-body.thumbs-open .stage-img,
-body.thumbs-open .stage-mini,
-body.thumbs-open .sb-counter,
-body.thumbs-open .sb-toggle { display: none; }
-body.thumbs-open .viewer { cursor: default; }
-.sb-total { display: none; opacity: 0.5; }
-body.thumbs-open .section-bar:not(.is-loading) .sb-total { display: inline; }
+.thumbs::after {
+    content: '';
+    flex: 1000 1 0;
+}
+body.thumbs-open .thumbs { display: flex; }
+
+/* в сетке скроллится вся страница, как обычный сайт */
+body.section-page.thumbs-open {
+    height: auto;
+    min-height: 100vh;
+    min-height: 100svh;
+    overflow: visible;
+}
 
 .thumb {
     --row-h: 160px;
@@ -211,12 +159,33 @@ body.is-loaded .thumb.loaded img { opacity: 1; }
     filter: brightness(1.05);
 }
 
-/* --- ТЕЛЕФОН: без мини-сетки, строки пониже --- */
+/* --- ТЕЛЕФОН: строки пониже --- */
 @media (max-width: 768px) {
-    .viewer { padding: 0 15px 15px; }
-    .stage-mini { display: none; }
-    .section-bar { font-size: 13px; gap: 15px; padding-top: 10px; }
+    .viewer { padding: 0 10px 10px; } /* поля как у главной на телефоне */
+    .section-bar { font-size: 13px; gap: 15px; padding-bottom: 10px; }
     .thumbs { gap: 6px; }
     .thumb { --row-h: 100px; }
-    body.thumbs-open .section-bar { padding-bottom: 10px; }
+
+    /* Просмотр на телефоне: шапка остаётся, фото с полями по 10px, как на главной —
+       по центру между шапкой и строкой внизу: слева «2025   17 / 75», справа show thumbnails. */
+    body.section-page:not(.thumbs-open) .main-header { display: flex; }
+    body.section-page:not(.thumbs-open) .viewer {
+        position: relative;
+        inset: auto;
+        flex-direction: column;
+        justify-content: flex-start;
+    }
+    body.section-page:not(.thumbs-open) .stage-img { margin: auto 0; }
+    .section-page .lb-controls-corner {
+        position: static;
+        flex: none;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: baseline;
+        align-self: stretch;
+        gap: 10px;
+        padding: 10px 10px 15px;
+    }
+    /* листать на телефоне — свайпом, кнопки prev / next не нужны */
+    .section-page .lb-nav-group { display: none; }
 }

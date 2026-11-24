@@ -17,8 +17,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const statusEl = document.getElementById('sb-status');
     const toggleEl = document.getElementById('sb-toggle');
     let mainImg = document.getElementById('stage-img');
-    const miniEl = document.getElementById('stage-mini');
     const thumbsEl = document.getElementById('thumbs');
+    const controlsEl = document.getElementById('viewer-controls');
 
     // фото лежат прямо в /images/<раздел>/ (экспорт из Lightroom), превью — в thumb/
     const url = (size, p) => {
@@ -28,18 +28,15 @@ document.addEventListener('DOMContentLoaded', () => {
             : `/images/${section}/${name}.${p.ext}`;
     };
     const wrap = (i) => (i + photos.length) % photos.length;
-    const isDesktop = () => window.matchMedia('(min-width: 769px)').matches;
     const gridOpen = () => document.body.classList.contains('thumbs-open');
 
     // --- ПУСТОЙ РАЗДЕЛ ---
     if (!photos.length) {
         bar.classList.remove('is-loading');
-        toggleEl.style.display = 'none';
-        counterEl.style.display = 'none';
+        controlsEl.remove();
         mainImg.remove();
-        viewer.insertAdjacentHTML('afterbegin', '<div class="stage-empty">no photos here yet</div>');
-        viewer.style.cursor = 'default';
-        document.body.classList.add('is-loaded');
+        viewer.insertAdjacentHTML('beforeend', '<div class="stage-empty">no photos here yet</div>');
+        document.body.classList.add('thumbs-open', 'is-loaded');
         return;
     }
 
@@ -84,24 +81,19 @@ document.addEventListener('DOMContentLoaded', () => {
         ]);
     });
 
-    // --- РАЗМЕР ФОТО: вписываем в свободное место над нижней строкой ---
+    // --- РАЗМЕР ФОТО: по центру экрана, как можно крупнее, но не под кнопками в углу ---
+    // (общий расчёт с главной — js/viewer-fit.js)
     let current = -1;
 
     const fit = () => {
         const p = photos[current];
-        if (!p) return;
-        const cs = getComputedStyle(viewer);
-        const padX = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
-        const padY = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
-        const sideGap = isDesktop() && photos.length > 1
-            ? parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--side-gap')) || 0
-            : 0;
-        // фото по центру — поле под мини-сетку справа держим и слева, чтобы было симметрично
-        const availW = viewer.clientWidth - padX - sideGap * 2;
-        const availH = viewer.clientHeight - padY - bar.offsetHeight;
-        const scale = Math.max(0, Math.min(availW / p.w, availH / p.h, 1));
-        mainImg.style.width = `${Math.floor(p.w * scale)}px`;
-        mainImg.style.height = `${Math.floor(p.h * scale)}px`;
+        if (!p || gridOpen()) return;
+        // на телефоне кнопки — строкой под фото (не поверх), фото делит с ними высоту
+        const inRow = getComputedStyle(controlsEl).position === 'static';
+        const availH = viewer.clientHeight - (inRow ? controlsEl.offsetHeight : 0);
+        const [w, h] = window.fitPhoto(p.w, p.h, viewer.clientWidth, availH, inRow ? null : controlsEl);
+        mainImg.style.width = `${w}px`;
+        mainImg.style.height = `${h}px`;
     };
 
     // --- ПОКАЗ ФОТО ---
@@ -113,7 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const my = ++token;
         const p = photos[i];
 
-        counterEl.textContent = `${i + 1} — ${photos.length}`;
+        counterEl.textContent = `${i + 1} / ${photos.length}`;
         history.replaceState(history.state, '', `#${encodeURIComponent(p.file)}`); // ссылка на кадр — по имени файла
 
         // Новый кадр готовим отдельно (загрузка + декодирование) и только потом
@@ -280,31 +272,24 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // мини-сетка над «show thumbnails» — значок галереи, клик возвращает к сетке
-    if (photos.length > 1) {
-        photos.slice(0, 6).forEach((p) => {
-            const t = new Image();
-            t.src = url('thumb', p);
-            t.alt = '';
-            miniEl.appendChild(t);
-        });
-        miniEl.hidden = false;
-    }
-    miniEl.addEventListener('click', (e) => {
-        e.stopPropagation();
-        backToGrid();
-    });
     toggleEl.addEventListener('click', (e) => {
         e.stopPropagation();
         backToGrid();
     });
+    document.getElementById('viewer-prev').addEventListener('click', (e) => { e.stopPropagation(); prev(); });
+    document.getElementById('viewer-next').addEventListener('click', (e) => { e.stopPropagation(); next(); });
 
-    // --- КЛИКИ / ТАПЫ В ПРОСМОТРЕ: правая половина — дальше, левая — назад ---
+    // --- КЛИКИ / ТАПЫ В ПРОСМОТРЕ ---
+    // по фото: правая половина — дальше, левая — назад; по пустому месту — назад к сетке (как на главной)
     let lastSwipeAt = 0;
 
     viewer.addEventListener('click', (e) => {
-        if (gridOpen() || isZoomed() || e.target.closest('.section-bar, .thumbs')) return;
+        if (gridOpen() || isZoomed() || e.target.closest('.thumbs, .lb-controls-corner')) return;
         if (Date.now() - lastSwipeAt < 400) return;
+        if (e.target !== mainImg) {
+            backToGrid();
+            return;
+        }
         if (e.clientX > window.innerWidth / 2) next();
         else prev();
     });

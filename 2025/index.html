@@ -52,18 +52,29 @@
 
         <div class="section-bar is-loading" id="section-bar">
             <span class="sb-name">2025</span>
-            <span class="sb-counter" id="sb-counter"></span>
             <span class="sb-total" id="sb-total"></span>
             <span class="sb-loading">loading</span>
             <span class="sb-status" id="sb-status"></span>
-            <span class="sb-toggle" id="sb-toggle">show thumbnails</span>
-            <div class="stage-mini" id="stage-mini" title="all photos" hidden></div>
+        </div>
+
+        <div class="lb-controls-corner" id="viewer-controls">
+            <div class="lb-count-line">
+                <span class="lb-name">2025</span>
+                <span class="lb-counter" id="sb-counter"></span>
+            </div>
+            <div class="lb-nav-group">
+                <div class="lb-text-btn" id="viewer-prev">prev</div>
+                <span class="lb-separator">/</span>
+                <div class="lb-text-btn" id="viewer-next">next</div>
+            </div>
+            <div class="lb-text-btn" id="sb-toggle">show thumbnails</div>
         </div>
     </main>
 
 <script src="/2025/photos.js"></script>
 <script src="/js/protect-images.js" defer></script>
 <script src="/js/nav.js" defer></script>
+<script src="/js/viewer-fit.js" defer></script>
 <script src="/js/section.js" defer></script>
 </body>
 </html>

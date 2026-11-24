@@ -47,16 +47,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- ПРЕДЗАГРУЗКА ---
     const cache = new Map();
-    const preload = (src) => {
+    const done = new Set(); // уже скачанные файлы
+    const preload = (src, priority) => {
         if (!cache.has(src)) {
             cache.set(src, new Promise((resolve) => {
                 const im = new Image();
-                im.onload = im.onerror = () => resolve();
+                if (priority) im.fetchPriority = priority;
+                im.onload = () => { done.add(src); resolve(); };
+                im.onerror = () => resolve();
                 im.src = src;
             }));
         }
         return cache.get(src);
     };
+
+    // кадр, который человек открыл и ждёт: пока он качается, фоновая загрузка не берёт новые файлы
+    let urgent = null;
 
     // картинка загружена и раскодирована — можно показывать без мигания.
     // decode() ждём не дольше 300 мс: в неактивной вкладке браузер может его откладывать.
@@ -102,20 +108,42 @@ document.addEventListener('DOMContentLoaded', () => {
         // Новый кадр готовим отдельно (загрузка + декодирование) и только потом
         // подменяем им старый. Если просто поменять src у текущего <img>, браузер
         // на долю секунды растягивает старую картинку под размеры новой.
+        const bigSrc = url('large', p);
+        const big = stageImg(bigSrc, 'high');
+        const ready = decoded(big).then(() => {
+            if (my !== token) return; // пока грузилось, уже перелистнули дальше
+            swapTo(big);
+            [1, -1, 2].forEach((d) => preload(url('large', photos[wrap(i + d)])));
+        });
+        if (done.has(bigSrc)) return ready;
+
+        // Большой файл ещё не скачан. Фоновая загрузка уступает ему дорогу,
+        // а пока он качается, показываем превью этого же кадра (оно уже есть),
+        // растянутое до размера фото, — через миг его сменит резкая версия.
+        urgent = ready;
+        ready.then(() => { if (urgent === ready) urgent = null; });
+        const thumbSrc = url('thumb', p);
+        if (!done.has(thumbSrc)) return ready;
+        const small = stageImg(thumbSrc);
+        return decoded(small).then(() => {
+            if (my === token && !big.isConnected) swapTo(small);
+        });
+    };
+
+    function stageImg(src, priority) {
         const img = new Image();
         img.className = 'stage-img';
         img.id = 'stage-img';
         img.alt = '';
-        img.src = url('large', p);
-
-        return decoded(img).then(() => {
-            if (my !== token) return; // пока грузилось, уже перелистнули дальше
-            mainImg.replaceWith(img);
-            mainImg = img;
-            fit();
-            [1, -1, 2].forEach((d) => preload(url('large', photos[wrap(i + d)])));
-        });
-    };
+        if (priority) img.fetchPriority = priority;
+        img.src = src;
+        return img;
+    }
+    function swapTo(img) {
+        mainImg.replaceWith(img);
+        mainImg = img;
+        fit();
+    }
 
     const next = () => show(current + 1);
     const prev = () => show(current - 1);
@@ -239,21 +267,36 @@ document.addEventListener('DOMContentLoaded', () => {
     let lastSwipeAt = 0;
 
     viewer.addEventListener('click', (e) => {
-        if (gridOpen() || e.target.closest('.section-bar, .thumbs')) return;
+        if (gridOpen() || isZoomed() || e.target.closest('.section-bar, .thumbs')) return;
         if (Date.now() - lastSwipeAt < 400) return;
         if (e.clientX > window.innerWidth / 2) next();
         else prev();
     });
 
-    // свайп на телефоне
+    // свайп на телефоне.
+    // Зум двумя пальцами и движение по увеличенному фото не должны листать:
+    // жест с двумя пальцами игнорируем целиком, а пока страница увеличена — свайпы и тапы не листают.
+    const isZoomed = () => !!window.visualViewport && window.visualViewport.scale > 1.05;
     let touchX = null;
     let touchY = null;
+    let multiTouch = false;
     viewer.addEventListener('touchstart', (e) => {
+        if (e.touches.length > 1) {
+            multiTouch = true;
+            touchX = touchY = null;
+            return;
+        }
+        multiTouch = false;
         touchX = e.touches[0].clientX;
         touchY = e.touches[0].clientY;
     }, { passive: true });
     viewer.addEventListener('touchend', (e) => {
-        if (touchX === null || gridOpen()) return;
+        if (multiTouch) {
+            lastSwipeAt = Date.now(); // гасим «клик», который браузер может прислать после жеста
+            if (e.touches.length === 0) multiTouch = false;
+            return;
+        }
+        if (touchX === null || gridOpen() || isZoomed()) return;
         const dx = e.changedTouches[0].clientX - touchX;
         const dy = e.changedTouches[0].clientY - touchY;
         touchX = touchY = null;
@@ -297,8 +340,9 @@ document.addEventListener('DOMContentLoaded', () => {
         let next = 0;
         const pump = () => {
             if (next >= queue.length) return;
+            if (urgent) { urgent.then(pump); return; } // сначала то, что открыли
             const item = queue[next++];
-            preload(item.src).then(() => {
+            preload(item.src, 'low').then(() => {
                 loadedCount++;
                 if (!revealed) names.push(item.name);
                 if (loadedCount === queue.length) resolve();

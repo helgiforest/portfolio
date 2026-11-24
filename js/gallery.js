@@ -52,9 +52,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const flashInterval = setInterval(nextFlashImage, 1000);
 
-    // 4. Показываем галерею, когда загрузились фото первого экрана —
-    // остальные догружаются и проявляются сами (место под них уже занято,
-    // поэтому ничего не прыгает). Потом в фоне качаются большие версии для лайтбокса.
+    // 4. Галерею показываем, только когда скачано ВСЁ: картинки сетки и большие версии
+    // для лайтбокса. Открывается дольше, зато потом любое фото открывается сразу.
+    // На совсем плохой сети через 60 с показываем как есть — остальное докачается и проявится.
+    const MAX_PRELOADER_MS = 60000;
     let revealed = false;
     const revealGallery = () => {
         if (revealed) return;
@@ -79,19 +80,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const firstScreen = imgs.filter((img) => img.getBoundingClientRect().top < window.innerHeight);
     const rest = imgs.filter((img) => !firstScreen.includes(img));
 
-    let firstLeft = firstScreen.length;
-    let allLeft = totalImagesCount;
+    const revealWhenReady = () => {
+        const remaining = Math.max(0, MIN_PRELOADER_MS - (Date.now() - preloaderStartTime));
+        setTimeout(revealGallery, remaining);
+    };
+
+    let gridLeft = totalImagesCount;
     const onDone = (img, ok) => {
         if (ok) {
             img.classList.add('loaded');
             loadedImgs.push(img);
             if (loadedImgs.length === 1) nextFlashImage();
         }
-        if (firstScreen.includes(img) && --firstLeft === 0) {
-            const remaining = Math.max(0, MIN_PRELOADER_MS - (Date.now() - preloaderStartTime));
-            setTimeout(revealGallery, remaining);
-        }
-        if (--allLeft === 0) preloadFull();
+        if (--gridLeft === 0) preloadFull().then(revealWhenReady);
     };
 
     if (totalImagesCount > 0) {
@@ -102,28 +103,34 @@ document.addEventListener('DOMContentLoaded', () => {
             img.addEventListener('error', () => onDone(img, false), { once: true });
             img.src = img.dataset.src;
         });
-        if (!firstScreen.length) revealGallery();
-        // на совсем медленном интернете дольше 12 секунд не держим
-        setTimeout(revealGallery, 12000);
+        setTimeout(revealGallery, MAX_PRELOADER_MS);
     } else {
         preloader.style.display = 'none';
     }
 
-    // Большие версии для лайтбокса — в фоне, по три за раз, когда сетка уже скачана.
+    // Большие версии для лайтбокса — после сетки, по шесть за раз. Каждая качается
+    // в свой <img>, и лайтбокс показывает именно его — второй раз в сеть не идём
+    // (даже после Cmd+Shift+R, когда браузер не читает кэш).
     // Только на компьютере: на телефоне лайтбокс не открывается, незачем тратить трафик.
-    const preloadFull = () => {
-        if (window.innerWidth <= 768) return;
+    const fullEls = new Map(); // src → скачанный <img>
+    const preloadFull = () => new Promise((resolve) => {
+        if (window.innerWidth <= 768) { resolve(); return; }
         const queue = imgs.map((img) => img.dataset.full).filter(Boolean);
+        let left = queue.length;
+        if (!left) { resolve(); return; }
         const pump = () => {
             const src = queue.shift();
             if (!src) return;
             const im = new Image();
-            im.fetchPriority = 'low';
-            im.onload = im.onerror = pump;
+            im.onload = im.onerror = () => {
+                if (--left === 0) resolve();
+                pump();
+            };
             im.src = src;
+            fullEls.set(src, im);
         };
-        for (let k = 0; k < 3; k++) pump();
-    };
+        for (let k = 0; k < 6; k++) pump();
+    });
 
     // --- ЛАЙТБОКС ---
     const showImage = (index) => {
@@ -131,10 +138,16 @@ document.addEventListener('DOMContentLoaded', () => {
         if (index >= imgs.length) index = 0;
         currentIndex = index;
         lbContainer.innerHTML = '';
-        const img = new Image();
+        const src = imgs[currentIndex].dataset.full || imgs[currentIndex].src;
+        // уже скачанная большая версия — показываем сразу; иначе грузим и проявляем
+        let img = fullEls.get(src);
+        if (!img) {
+            img = new Image();
+            img.src = src;
+        }
         img.className = 'lightbox-content';
-        img.src = imgs[currentIndex].dataset.full || imgs[currentIndex].src;
-        img.onload = () => img.style.opacity = '1';
+        if (img.complete && img.naturalWidth) img.style.opacity = '1';
+        else img.onload = () => { img.style.opacity = '1'; };
         lbContainer.appendChild(img);
         lbCounter.textContent = `${currentIndex + 1} / ${imgs.length}`;
     };

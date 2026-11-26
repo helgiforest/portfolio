@@ -420,7 +420,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // экономия трафика или медленная сеть (Chrome/Android сообщают) — полные фото только по требованию
     const conn = navigator.connection;
     const lite = !!conn && (conn.saveData || /(^|-)(2g|3g)$/.test(conn.effectiveType || ''));
-    const FIRST_FULL = lite ? 0 : Math.min(8, photos.length);
+    const FIRST_FULL = lite ? 0 : Math.min(4, photos.length);
 
     const thumbJobs = photos.map((p) => ({ src: url('thumb', p), name: p.file }));
     const fullJobs = lite ? [] : photos.map((p) => ({ src: url('large', p), name: p.file }));

@@ -3,15 +3,16 @@
 Готовит фото для разделов archive / 2025 / 2026.
 
 Как пользоваться:
-  1. Экспортируешь из Lightroom прямо в папку раздела, например images/2025/
-     (sRGB; AVIF или JPEG — любое качество, хоть максимальное; размер любой, лучше от 2000px).
-     Подходят avif, webp, jpg, png.
+  1. Кладёшь оригинал — экспорт из Lightroom (JPEG 100, sRGB, 3000px) — в
+     images/originals/<раздел>/ (эта папка только у тебя, на GitHub не попадает).
+     Можно и сразу в images/<раздел>/ — тогда скрипт пережмёт то, что там лежит.
+     Подходят avif, webp, jpg, png (и tif — для оригиналов).
   2. Запускаешь из корня сайта:
         python3 tools/build_photos.py            # все разделы
         python3 tools/build_photos.py 2025       # только один
   3. Скрипт сам:
-     - пережимает каждое новое фото в AVIF 2000px по длинной стороне свежим кодировщиком
-       (avifenc ≥ 1.4, 4:4:4, 10 бит, q60): по весу примерно вдвое легче экспорта
+     - пережимает каждое новое фото в AVIF 2560px по длинной стороне свежим кодировщиком
+       (avifenc ≥ 1.4, 4:4:4, 10 бит, q70): лучше по резкости и легче экспорта
        из Lightroom, а на глаз неотличимо (проверено слепым сравнением на самых
        тёмных и зернистых кадрах). Уже пережатые помнит в tools/optimized.json
        и второй раз не трогает.
@@ -49,8 +50,8 @@ ROOT = Path(__file__).resolve().parent.parent
 SECTIONS = ["archive", "2025", "2026"]
 THUMB_EDGE, THUMB_QUALITY = 640, 78
 EXTS = {".avif", ".webp", ".jpg", ".jpeg", ".png"}  # то, что браузер показывает сам
-FULL_EDGE = 2000       # длинная сторона фото на сайте
-AVIF_Q = 60            # качество avifenc ≥ 1.4 (не путать с качеством Lightroom/Pillow — шкалы разные)
+FULL_EDGE = 2560       # длинная сторона фото на сайте (2000 мало для Retina — слепой тест: 2560 резче)
+AVIF_Q = 70            # качество avifenc ≥ 1.4 (не путать с качеством Lightroom/Pillow — шкалы разные)
 PHONE_W = 1170         # ширина версии для телефона
 WARN_EDGE = 2600       # больше — скорее всего забыл Resize to Fit при экспорте (если нет avifenc)
 WARN_MB = 2
@@ -148,6 +149,40 @@ def optimize(src, phone_out):
     return new
 
 
+def settings_sig():
+    # если поменять размер или качество — фото из оригиналов пересоберутся сами
+    return f"{FULL_EDGE}/{AVIF_Q}/{PHONE_W}"
+
+
+def from_original(orig, base, phone_dir):
+    """Сделать фото для сайта и версию для телефона прямо из оригинала (одно сжатие)."""
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp = Path(tmp)
+        im = open_rgb(orig)
+        full = im.copy()
+        full.thumbnail((FULL_EDGE, FULL_EDGE), Image.LANCZOS)
+        full.save(tmp / "full.png")
+        out = tmp / "out.avif"
+        encode_avif(tmp / "full.png", out)
+        new = base / f"{orig.stem}.avif"
+        for old in base.glob(f"{glob_escape(orig.stem)}.*"):
+            if old.suffix.lower() in EXTS and old != new:
+                old.unlink()
+        shutil.move(str(out), str(new))
+        phone = phone_dir / f"{orig.stem}.avif"
+        if full.width > PHONE_W * 1.1:
+            small = im.copy()
+            small.thumbnail((PHONE_W, 100000), Image.LANCZOS)
+            small.save(tmp / "phone.png")
+            phone_dir.mkdir(parents=True, exist_ok=True)
+            encode_avif(tmp / "phone.png", phone)  # после фото — чтобы была «новее» его
+    return new
+
+
+def glob_escape(name):
+    return re.sub(r"([*?\[])", r"[\1]", name)
+
+
 def build(section, manifest):
     base = ROOT / "images" / section
     base.mkdir(parents=True, exist_ok=True)
@@ -167,28 +202,48 @@ def build(section, manifest):
     for name in skipped:
         print(f"  ! {name}: браузер такой формат не покажет, выгрузи в avif/jpg")
 
-    # 1. пережимаем новые фото (параллельно — avifenc на медленной скорости долгий)
+    # 1. пережимаем: из оригиналов (images/originals/<раздел>) — если есть, иначе новые
+    #    файлы в самой папке раздела. Параллельно — avifenc на медленной скорости долгий.
     optimized = 0
+    orig_dir = ROOT / "images" / "originals" / section
+    origs = {}
+    if orig_dir.exists():
+        for p in orig_dir.iterdir():
+            if p.is_file() and not p.name.startswith(".") and p.suffix.lower() in EXTS | {".tif", ".tiff"}:
+                origs[p.stem] = p
     if AVIFENC:
-        todo = [p for p in list_files() if done_hashes.get(p.stem) != sha1(p)]
+        sig = settings_sig()
+        todo = []
+        for stem, o in origs.items():
+            out = base / f"{stem}.avif"
+            if (done_hashes.get(stem + ":src") != f"{sha1(o)}|{sig}"
+                    or not out.exists() or done_hashes.get(stem) != sha1(out)):
+                todo.append(("orig", o))
+        todo += [("plain", p) for p in list_files() if p.stem not in origs and done_hashes.get(p.stem) != sha1(p)]
         if todo:
             print(f"  пережимаю {len(todo)} фото...")
 
-        def one(p):
+        def one(job):
+            kind, p = job
             try:
-                new = optimize(p, phone_dir / f"{p.stem}.avif")
-                return p, new, None
+                if kind == "orig":
+                    new = from_original(p, base, phone_dir)
+                else:
+                    new = optimize(p, phone_dir / f"{p.stem}.avif")
+                return job, new, None
             except Exception as e:
-                return p, None, e
+                return job, None, e
 
         with ThreadPoolExecutor(4) as ex:
-            for p, new, err in ex.map(one, todo):
+            for (kind, p), new, err in ex.map(one, todo):
                 if err:
                     print(f"  ! не получилось пережать {p.name}: {err}")
                     continue
                 done_hashes[new.stem] = sha1(new)
+                if kind == "orig":
+                    done_hashes[new.stem + ":src"] = f"{sha1(p)}|{sig}"
                 optimized += 1
-                print(f"  ≈ {new.name}")
+                print(f"  ≈ {new.name}" + ("  (из оригинала)" if kind == "orig" else ""))
     else:
         print("  ! нет avifenc (brew install libavif) — фото не пережимаю, идут как есть")
 
@@ -243,9 +298,9 @@ def build(section, manifest):
             if f.is_file() and not f.name.startswith(".") and f.stem not in with_phone:
                 f.unlink()
                 removed += 1
-    for stem in list(done_hashes):
-        if stem not in seen:
-            del done_hashes[stem]
+    for key in list(done_hashes):
+        if key.split(":")[0] not in seen:
+            del done_hashes[key]
 
     out = ROOT / section / "photos.js"
     out.parent.mkdir(parents=True, exist_ok=True)

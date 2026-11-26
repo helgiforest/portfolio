@@ -46,6 +46,11 @@ body.section-page:not(.thumbs-open) .viewer {
     flex: none;
 }
 .stage-img:not([src]) { visibility: hidden; }
+/* кадр ещё качается: прошлое фото не показываем, нерезкое — тоже (js/section.js) */
+.viewer.is-waiting .stage-img { visibility: hidden; }
+/* дождались — мягко проявляем */
+.stage-img.fade-in { animation: stage-in 0.15s ease; }
+@keyframes stage-in { from { opacity: 0; } to { opacity: 1; } }
 body.thumbs-open .stage-img,
 body.thumbs-open .lb-controls-corner { display: none; }
 

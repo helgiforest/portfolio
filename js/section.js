@@ -83,9 +83,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // Кадр, который человек открыл (если ещё не скачан), и соседние:
     // пока они качаются, фоновая загрузка не берёт новые файлы.
     let urgent = null;
+    let resumeQueue = () => {}; // фоновая очередь (ниже) подставит сюда свой запуск
     const makeUrgent = (wait) => {
         urgent = wait;
-        wait.then(() => { if (urgent === wait) urgent = null; });
+        wait.then(() => {
+            if (urgent !== wait) return;
+            urgent = null;
+            resumeQueue();
+        });
     };
 
     // картинка загружена и раскодирована — можно показывать без мигания.
@@ -128,35 +133,51 @@ document.addEventListener('DOMContentLoaded', () => {
         // Новый кадр готовим отдельно (загрузка + декодирование) и только потом
         // подменяем им старый. Если просто поменять src у текущего <img>, браузер
         // на долю секунды растягивает старую картинку под размеры новой.
+        // Нерезкое не показываем никогда: если файл ещё не скачан, на экране пусто
+        // (через 0,3 с в счётчике — «loading»), а потом сразу резкое фото с лёгким проявлением.
         const bigSrc = url('large', p);
         const big = stageImg(bigSrc, 'high');
         const neighbourSrcs = [1, -1, 2].map((d) => url('large', photos[wrap(i + d)]));
+        const waiting = !done.has(bigSrc);
+        if (waiting) startWaiting(my, i);
         const ready = decoded(big, bigSrc).then(() => {
             if (my !== token) return; // пока грузилось, уже перелистнули дальше
-            if (done.has(bigSrc)) { swapTo(big); return; }
-            // большой файл так и не скачался — битую картинку не показываем, вместо неё превью
+            stopWaiting(i);
+            if (done.has(bigSrc)) { swapTo(big, waiting); return; }
+            // большой файл так и не скачался (сеть) — битую картинку не показываем, вместо неё превью
             const thumbSrc = url('thumb', p);
             const small = stageImg(thumbSrc);
             return decoded(small, thumbSrc).then(() => {
-                if (my === token && done.has(thumbSrc)) swapTo(small);
+                if (my === token && done.has(thumbSrc)) swapTo(small, true);
             });
         });
-        // сразу за открытым кадром — соседние, чтобы листать без ожидания
+        // сразу за открытым кадром — соседние, чтобы листать без ожидания;
+        // следующий ещё и распаковываем заранее, чтобы «дальше» было мгновенным
         const withNeighbours = ready.then(() => {
-            if (my === token) return Promise.all(neighbourSrcs.map((s) => preload(s)));
+            if (my !== token) return;
+            return Promise.all(neighbourSrcs.map((s) => preload(s))).then(() => {
+                const nextEl = elements.get(neighbourSrcs[0]);
+                if (my === token && nextEl && done.has(neighbourSrcs[0]) && nextEl.decode) nextEl.decode().catch(() => {});
+            });
         });
         if ([bigSrc, ...neighbourSrcs].some((s) => !done.has(s))) makeUrgent(withNeighbours);
-        if (done.has(bigSrc)) return ready;
-
-        // Большой файл ещё не скачан: пока он качается, показываем превью этого же кадра
-        // (оно уже есть), растянутое до размера фото, — через миг его сменит резкая версия.
-        const thumbSrc = url('thumb', p);
-        if (!done.has(thumbSrc)) return ready;
-        const small = stageImg(thumbSrc);
-        return decoded(small, thumbSrc).then(() => {
-            if (my === token && !big.isConnected) swapTo(small);
-        });
+        return ready;
     };
+
+    // ожидание не скачанного кадра: старое фото убираем, через 0,3 с — «loading» рядом со счётчиком
+    let waitTimer = null;
+    function startWaiting(my, i) {
+        viewer.classList.add('is-waiting');
+        clearTimeout(waitTimer);
+        waitTimer = setTimeout(() => {
+            if (my === token) counterEl.textContent = `${i + 1} / ${photos.length}   loading`;
+        }, 300);
+    }
+    function stopWaiting(i) {
+        clearTimeout(waitTimer);
+        viewer.classList.remove('is-waiting');
+        counterEl.textContent = `${i + 1} / ${photos.length}`;
+    }
 
     // <img> для просмотра — тот самый, в который файл уже скачан (или качается)
     function stageImg(src, priority) {
@@ -167,10 +188,16 @@ document.addEventListener('DOMContentLoaded', () => {
         img.alt = '';
         return img;
     }
-    function swapTo(img) {
+    function swapTo(img, fadeIn) {
         if (img !== mainImg) {
             mainImg.replaceWith(img);
             mainImg = img;
+        }
+        // после ожидания — мягкое проявление (0,15 с); уже скачанные кадры листаются мгновенно
+        img.classList.remove('fade-in');
+        if (fadeIn) {
+            void img.offsetWidth; // перезапуск анимации
+            img.classList.add('fade-in');
         }
         fit();
     }
@@ -218,6 +245,20 @@ document.addEventListener('DOMContentLoaded', () => {
             e.stopPropagation(); // иначе клик дойдёт до просмотра и перелистнёт
             openPhoto(i);
         });
+
+        // Намерение открыть: мышь задержалась на кадре 60 мс или палец коснулся —
+        // сразу качаем его полную версию первой (обычно это даёт ~0,1–0,3 с форы до клика).
+        let hoverTimer = null;
+        const want = () => {
+            const src = url('large', p);
+            if (done.has(src)) return;
+            makeUrgent(preload(src, 'high'));
+        };
+        item.addEventListener('pointerenter', (e) => {
+            if (e.pointerType === 'mouse') hoverTimer = setTimeout(want, 60);
+        });
+        item.addEventListener('pointerleave', () => clearTimeout(hoverTimer));
+        item.addEventListener('pointerdown', want);
         thumbsEl.appendChild(item);
         return item;
     });
@@ -260,15 +301,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // открыть кадр из сетки: сетку закрываем только когда фото готово —
-    // иначе на мгновение мелькнёт предыдущее. Кнопка «назад» браузера вернёт к сетке.
+    // открыть кадр из сетки. Скачанный — сетку закрываем, когда он распакован (без мигания).
+    // Ещё не скачанный — просмотр открываем сразу: пустой экран и «loading», потом резкое фото.
+    // Кнопка «назад» браузера вернёт к сетке.
     let pushed = false;
     const openPhoto = (i) => {
         if (!pushed) {
             history.pushState({ photo: true }, '', `#${encodeURIComponent(photos[i].file)}`);
             pushed = true;
         }
-        show(i).then(() => {
+        const ready = show(i);
+        if (viewer.classList.contains('is-waiting')) setGrid(false);
+        ready.then(() => {
             if (current === i && gridOpen()) setGrid(false);
         });
     };
@@ -364,18 +408,24 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.key === 'ArrowLeft') prev();
     });
 
-    // --- ЗАГРУЗКА: сетку показываем, только когда скачаны ВСЕ фото в полном размере —
-    // открытие дольше, зато потом любой кадр открывается сразу резким.
+    // --- ЗАГРУЗКА ---
+    // Сетку показываем, когда скачаны все превью и первые FIRST_FULL полных кадров
+    // (а не все 100 МБ — так делают все большие галереи). Остальные полные фото
+    // докачиваются в фоне по одному-два, в порядке сетки: когда файлов в работе мало,
+    // каждый приходит быстро, и кадр, на который смотрят или наводят, не ждёт в толпе.
     // Пока грузится — «2025 loading» и мелькают имена загруженных файлов (как у Энтони).
     const startedAt = performance.now();
     const MIN_LOADING_MS = 700;
-    const MAX_LOADING_MS = 60000; // предохранитель на совсем плохую сеть: остальное догрузится в фоне
+    const MAX_LOADING_MS = 30000; // предохранитель на совсем плохую сеть: остальное догрузится в фоне
+    // экономия трафика или медленная сеть (Chrome/Android сообщают) — полные фото только по требованию
+    const conn = navigator.connection;
+    const lite = !!conn && (conn.saveData || /(^|-)(2g|3g)$/.test(conn.effectiveType || ''));
+    const FIRST_FULL = lite ? 0 : Math.min(8, photos.length);
 
-    const queue = [
-        ...photos.map((p) => ({ src: url('thumb', p), name: p.file })), // сначала превью — они лёгкие
-        ...photos.map((p) => ({ src: url('large', p), name: p.file })),
-    ];
-    let loadedCount = 0;
+    const thumbJobs = photos.map((p) => ({ src: url('thumb', p), name: p.file }));
+    const fullJobs = lite ? [] : photos.map((p) => ({ src: url('large', p), name: p.file }));
+    const queue = [...thumbJobs, ...fullJobs]; // сначала превью — они лёгкие
+    const mustHave = [...thumbJobs, ...fullJobs.slice(0, FIRST_FULL)].map((j) => j.src);
     let revealed = false;
 
     // имена показываем по очереди не чаще раза в 60 мс — эффект «бегущих» файлов
@@ -417,22 +467,37 @@ document.addEventListener('DOMContentLoaded', () => {
         if (flashPool.length === 1) flashNext();
     };
 
-    const loadAll = () => new Promise((resolve) => {
-        const PARALLEL = 6;
-        const total = queue.length;
-        const pump = () => {
-            if (!queue.length) return;
-            if (urgent) { urgent.then(pump); return; } // сначала то, что открыли
+    // до показа сетки — 6 файлов одновременно (превью маленькие), после — по 2
+    const parallel = () => (revealed ? 1 : 6);
+    let active = 0;
+    let started = false;
+    let mustLeft = mustHave.length;
+    let onMustHave = () => {};
+    const mustSet = new Set(mustHave);
+    const pump = () => {
+        if (!started) return;
+        while (active < parallel() && queue.length && !urgent) { // открытый / выбранный кадр — первым
             const item = queue.shift();
+            if (done.has(item.src)) { finished(item); continue; }
+            active++;
             preload(item.src, 'low').then(() => {
-                loadedCount++;
-                if (!revealed) names.push(item.name);
-                onLoaded(item.src);
-                if (loadedCount === total) resolve();
+                active--;
+                finished(item);
                 pump();
             });
-        };
-        for (let k = 0; k < PARALLEL; k++) pump();
+        }
+    };
+    function finished(item) {
+        if (!revealed) names.push(item.name);
+        onLoaded(item.src);
+        if (mustSet.delete(item.src) && --mustLeft === 0) onMustHave();
+    }
+    resumeQueue = pump;
+    const loadAll = () => new Promise((resolve) => {
+        onMustHave = resolve;
+        if (!mustLeft) resolve();
+        started = true;
+        pump();
     });
 
     const reveal = () => {
@@ -447,6 +512,7 @@ document.addEventListener('DOMContentLoaded', () => {
             bar.classList.remove('is-loading');
             document.body.classList.add('is-loaded');
             fit();
+            pump(); // дальше — фоновая докачка по 2
         }, wait);
     };
 

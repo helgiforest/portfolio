@@ -147,6 +147,9 @@
     opacity: 0;
     transition: opacity 0.3s ease-in-out;
 }
+/* фото дождались — мягко проявляем (уже скачанные листаются мгновенно) */
+.lightbox-content.fade-in { animation: lb-in 0.15s ease; }
+@keyframes lb-in { from { opacity: 0; } to { opacity: 1; } }
 
 /* кнопки в углу и мини-сетка — общие, в css/base.css */
 

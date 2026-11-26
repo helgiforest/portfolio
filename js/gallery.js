@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let flashIndex = 0;
     const totalImagesCount = imgs.length;
     const preloaderStartTime = Date.now();
-    const MIN_PRELOADER_MS = isReload ? 1500 : 2600; // на обновлении держим короче, на первом заходе — как и раньше
+    const MIN_PRELOADER_MS = isReload ? 700 : 1200; // чтобы мелькалка успела показаться, но не держала зря
 
     // В прелоадере мелькают уже скачанные фото, но в «неспойлерном» виде (js/flash.js)
     const drawFlash = window.photoFlash(preloaderImg);
@@ -44,10 +44,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const flashInterval = setInterval(nextFlashImage, 1000);
 
-    // 4. Галерею показываем, только когда скачано ВСЁ: картинки сетки и большие версии
-    // для лайтбокса. Открывается дольше, зато потом любое фото открывается сразу.
-    // На совсем плохой сети через 60 с показываем как есть — остальное докачается и проявится.
-    const MAX_PRELOADER_MS = 60000;
+    // 4. Галерею показываем, когда скачаны картинки сетки (как в разделах — а не все 57 больших,
+    // так делают все большие галереи). Большие версии для лайтбокса докачиваются потом в фоне
+    // по одной, в порядке сетки; наведение на фото качает его первым.
+    // На совсем плохой сети через 30 с показываем как есть — остальное докачается и проявится.
+    const MAX_PRELOADER_MS = 30000;
     let revealed = false;
     // В шапке по центру (как в разделах) — «loading» и имена скачанных файлов,
     // по очереди не чаще раза в 60 мс — эффект «бегущих» файлов.
@@ -71,9 +72,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 preloader.style.visibility = 'hidden';
                 gallery.style.opacity = '1';
                 document.body.classList.add('is-loaded');
-                setTimeout(prefetchSections, 1500); // разделы — уже после того, как главная открылась
+                // большие версии для лайтбокса, потом — разделы из меню
+                preloadFullAll().then(prefetchSections);
             }, 600);
-        }, 800);
+        }, 200);
     };
 
     // размеры кадра известны заранее (width/height в HTML) — место под фото есть ещё до загрузки
@@ -97,7 +99,7 @@ document.addEventListener('DOMContentLoaded', () => {
             loadedImgs.push(img);
             if (loadedImgs.length === 1) nextFlashImage();
         }
-        if (--gridLeft === 0) preloadFull().then(revealWhenReady);
+        if (--gridLeft === 0) revealWhenReady();
     };
 
     if (totalImagesCount > 0) {
@@ -113,29 +115,81 @@ document.addEventListener('DOMContentLoaded', () => {
         preloader.style.display = 'none';
     }
 
-    // Большие версии для лайтбокса — после сетки, по шесть за раз. Каждая качается
-    // в свой <img>, и лайтбокс показывает именно его — второй раз в сеть не идём
-    // (даже после Cmd+Shift+R, когда браузер не читает кэш).
+    // Большие версии для лайтбокса. Каждая качается в свой <img>, и лайтбокс показывает
+    // именно его — второй раз в сеть не идём (даже после Cmd+Shift+R, когда браузер не читает кэш).
     // Только на компьютере: на телефоне лайтбокс не открывается, незачем тратить трафик.
-    const fullEls = new Map(); // src → скачанный <img>
-    const preloadFull = () => new Promise((resolve) => {
-        if (window.innerWidth <= 768) { resolve(); return; }
-        const queue = imgs.map((img) => img.dataset.full).filter(Boolean);
-        let left = queue.length;
-        if (!left) { resolve(); return; }
+    const isDesktop = () => window.innerWidth > 768;
+    const fullEls = new Map(); // src → <img>
+    const fullDone = new Set();
+    const fullWait = new Map(); // src → обещание «скачан»
+    const loadFull = (src, priority) => {
+        if (!fullWait.has(src)) {
+            fullWait.set(src, new Promise((resolve) => {
+                const im = new Image();
+                if (priority) im.fetchPriority = priority;
+                let tries = 0;
+                im.onload = () => { fullDone.add(src); resolve(); };
+                im.onerror = () => {
+                    // сеть моргнула — ещё две попытки; не вышло — забываем, при открытии попробуем снова
+                    if (++tries <= 2) { setTimeout(() => { im.src = `${src}?retry=${tries}`; }, 1000 * tries); return; }
+                    fullWait.delete(src);
+                    fullEls.delete(src);
+                    resolve();
+                };
+                im.src = src;
+                fullEls.set(src, im);
+            }));
+        }
+        return fullWait.get(src);
+    };
+
+    // Фоновая докачка: по одной (тогда каждая приходит быстро и не мешает той, что открыли),
+    // в том порядке, в каком фото видны на странице — сверху вниз.
+    // Пока качается открытое фото и его соседи (urgent) — очередь ждёт.
+    let urgent = null;
+    let resumeQueue = () => {};
+    const makeUrgent = (wait) => {
+        urgent = wait;
+        wait.then(() => {
+            if (urgent !== wait) return;
+            urgent = null;
+            resumeQueue();
+        });
+    };
+    const lite = !!navigator.connection && (navigator.connection.saveData || /(^|-)(2g|3g)$/.test(navigator.connection.effectiveType || ''));
+    const preloadFullAll = () => new Promise((resolve) => {
+        if (!isDesktop() || lite) { resolve(); return; }
+        const queue = imgs
+            .slice()
+            .sort((a, b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top)
+            .map((img) => img.dataset.full)
+            .filter(Boolean);
+        let busy = false;
         const pump = () => {
+            if (busy || urgent) return;
+            while (queue.length && fullDone.has(queue[0])) queue.shift();
             const src = queue.shift();
-            if (!src) return;
-            const im = new Image();
-            im.onload = im.onerror = () => {
-                if (!revealed) loadNames.push(fileName(src));
-                if (--left === 0) resolve();
-                pump();
-            };
-            im.src = src;
-            fullEls.set(src, im);
+            if (!src) { resolve(); return; }
+            busy = true;
+            loadFull(src, 'low').then(() => { busy = false; pump(); });
         };
-        for (let k = 0; k < 6; k++) pump();
+        resumeQueue = pump;
+        pump();
+    });
+
+    // Намерение открыть: мышь задержалась на фото 60 мс — качаем его большую версию первой
+    gallery.addEventListener('pointerover', (e) => {
+        const item = e.target.closest('.m-item');
+        if (!item || e.pointerType !== 'mouse' || !isDesktop()) return;
+        clearTimeout(item._hover);
+        item._hover = setTimeout(() => {
+            const src = item.querySelector('img').dataset.full;
+            if (src && !fullDone.has(src)) makeUrgent(loadFull(src, 'high'));
+        }, 60);
+    });
+    gallery.addEventListener('pointerout', (e) => {
+        const item = e.target.closest('.m-item');
+        if (item && !item.contains(e.relatedTarget)) clearTimeout(item._hover);
     });
 
     // Пока человек смотрит главную, тихо докачиваем разделы из меню more (2026, 2025, ...):
@@ -174,26 +228,54 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // --- ЛАЙТБОКС ---
+    // Нерезкое не показываем никогда: если большая версия ещё не скачана, на экране пусто
+    // (через 0,3 с у счётчика — «loading»), потом сразу резкое фото с лёгким проявлением.
+    let token = 0;
+    let waitTimer = null;
+    const wrapIdx = (i) => (i + imgs.length) % imgs.length;
     const showImage = (index) => {
-        if (index < 0) index = imgs.length - 1;
-        if (index >= imgs.length) index = 0;
+        index = wrapIdx(index);
         currentIndex = index;
-        lbContainer.innerHTML = '';
-        const src = imgs[currentIndex].dataset.full || imgs[currentIndex].src;
-        // уже скачанная большая версия — показываем сразу; иначе грузим и проявляем
-        // (если при скачивании сеть моргнула — в нём ошибка, тогда качаем заново)
-        let img = fullEls.get(src);
-        const broken = img && img.complete && !img.naturalWidth;
-        if (!img || broken) {
-            img = new Image();
-            img.src = broken ? `${src}?retry=${Date.now()}` : src;
-            fullEls.set(src, img);
+        const my = ++token;
+        const counter = `${index + 1} / ${imgs.length}`;
+        lbCounter.textContent = counter;
+        const src = imgs[index].dataset.full || imgs[index].src;
+        const ready = loadFull(src, 'high');
+        const img = fullEls.get(src);
+        const neighbours = [1, -1, 2].map((d) => imgs[wrapIdx(index + d)].dataset.full).filter(Boolean);
+        const waiting = !fullDone.has(src);
+        clearTimeout(waitTimer);
+        if (waiting) {
+            lbContainer.innerHTML = '';
+            waitTimer = setTimeout(() => { if (my === token) lbCounter.textContent = `${counter}   loading`; }, 300);
         }
+        const shown = ready
+            .then(() => (fullDone.has(src) && img.decode ? Promise.race([img.decode().catch(() => {}), new Promise((r) => setTimeout(r, 300))]) : null))
+            .then(() => {
+                if (my !== token) return;
+                clearTimeout(waitTimer);
+                lbCounter.textContent = counter;
+                if (!fullDone.has(src)) { // не скачалось (сеть) — показываем картинку из сетки, она уже есть
+                    const g = imgs[index].cloneNode();
+                    g.className = 'lightbox-content';
+                    g.removeAttribute('style');
+                    put(g, true);
+                    return;
+                }
+                put(img, waiting);
+            });
+        // соседние — сразу за открытым, чтобы листать без ожидания
+        const withNeighbours = shown.then(() => Promise.all(neighbours.map((s) => loadFull(s))));
+        if ([src, ...neighbours].some((s) => !fullDone.has(s))) makeUrgent(withNeighbours);
+    };
+    const put = (img, fadeIn) => {
         img.className = 'lightbox-content';
-        if (img.complete && img.naturalWidth) img.style.opacity = '1';
-        else img.onload = () => { img.style.opacity = '1'; };
-        lbContainer.appendChild(img);
-        lbCounter.textContent = `${currentIndex + 1} / ${imgs.length}`;
+        img.style.opacity = '1';
+        img.classList.toggle('fade-in', !!fadeIn);
+        if (lbContainer.firstChild !== img || lbContainer.childNodes.length !== 1) {
+            lbContainer.innerHTML = '';
+            lbContainer.appendChild(img);
+        }
         fitLightbox();
     };
 
@@ -212,6 +294,8 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('resize', fitLightbox);
 
     const closeLightbox = () => {
+        token++;
+        clearTimeout(waitTimer);
         lb.style.display = 'none';
         document.body.style.overflow = '';
         lbContainer.innerHTML = '';

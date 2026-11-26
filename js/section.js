@@ -49,13 +49,27 @@ document.addEventListener('DOMContentLoaded', () => {
     const cache = new Map();    // src → обещание «скачан»
     const elements = new Map(); // src → сам <img>
     const done = new Set();     // уже скачанные файлы
+    // Если сеть моргнула и файл не скачался — ещё две попытки с паузой. Не вышло и так —
+    // забываем этот <img>, чтобы битая картинка не осталась в памяти: при следующем
+    // открытии кадра файл качается заново.
     const preload = (src, priority) => {
         if (!cache.has(src)) {
             cache.set(src, new Promise((resolve) => {
                 const im = new Image();
                 if (priority) im.fetchPriority = priority;
+                let tries = 0;
                 im.onload = () => { done.add(src); resolve(); };
-                im.onerror = () => resolve();
+                im.onerror = () => {
+                    if (++tries <= 2) {
+                        setTimeout(() => { im.src = `${src}?retry=${tries}`; }, 1000 * tries);
+                        return;
+                    }
+                    if (elements.get(src) === im) {
+                        cache.delete(src);
+                        elements.delete(src);
+                    }
+                    resolve();
+                };
                 im.src = src;
                 elements.set(src, im);
             }));
@@ -73,8 +87,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // картинка загружена и раскодирована — можно показывать без мигания.
     // decode() ждём не дольше 300 мс: в неактивной вкладке браузер может его откладывать.
-    const decoded = (im) => preload(im.src).then(() => {
-        if (!im.decode) return;
+    const decoded = (im, src) => preload(src).then(() => {
+        if (!done.has(src) || !im.decode) return;
         return Promise.race([
             im.decode().catch(() => {}),
             new Promise((r) => setTimeout(r, 300)),
@@ -114,9 +128,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const bigSrc = url('large', p);
         const big = stageImg(bigSrc, 'high');
         const neighbourSrcs = [1, -1, 2].map((d) => url('large', photos[wrap(i + d)]));
-        const ready = decoded(big).then(() => {
+        const ready = decoded(big, bigSrc).then(() => {
             if (my !== token) return; // пока грузилось, уже перелистнули дальше
-            swapTo(big);
+            if (done.has(bigSrc)) { swapTo(big); return; }
+            // большой файл так и не скачался — битую картинку не показываем, вместо неё превью
+            const thumbSrc = url('thumb', p);
+            const small = stageImg(thumbSrc);
+            return decoded(small, thumbSrc).then(() => {
+                if (my === token && done.has(thumbSrc)) swapTo(small);
+            });
         });
         // сразу за открытым кадром — соседние, чтобы листать без ожидания
         const withNeighbours = ready.then(() => {
@@ -130,7 +150,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const thumbSrc = url('thumb', p);
         if (!done.has(thumbSrc)) return ready;
         const small = stageImg(thumbSrc);
-        return decoded(small).then(() => {
+        return decoded(small, thumbSrc).then(() => {
             if (my === token && !big.isConnected) swapTo(small);
         });
     };

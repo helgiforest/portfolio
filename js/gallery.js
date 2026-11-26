@@ -140,10 +140,13 @@ document.addEventListener('DOMContentLoaded', () => {
         lbContainer.innerHTML = '';
         const src = imgs[currentIndex].dataset.full || imgs[currentIndex].src;
         // уже скачанная большая версия — показываем сразу; иначе грузим и проявляем
+        // (если при скачивании сеть моргнула — в нём ошибка, тогда качаем заново)
         let img = fullEls.get(src);
-        if (!img) {
+        const broken = img && img.complete && !img.naturalWidth;
+        if (!img || broken) {
             img = new Image();
-            img.src = src;
+            img.src = broken ? `${src}?retry=${Date.now()}` : src;
+            fullEls.set(src, img);
         }
         img.className = 'lightbox-content';
         if (img.complete && img.naturalWidth) img.style.opacity = '1';

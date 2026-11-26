@@ -22,6 +22,47 @@
     gap: 20px;
 }
 
+/* Шапка видна и во время загрузки (поверх экрана загрузки), как в разделах.
+   По центру шапки — «loading» и имена скачиваемых файлов; на узком экране — строкой под шапкой. */
+/* поверх экрана загрузки — пока он не исчезнет совсем (is-loaded), чтобы шапка не мигала */
+.home-page:not(.is-loaded) .main-header { position: relative; z-index: 10001; }
+.home-page .main-header {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+}
+.home-page .main-header .logo { grid-column: 1; justify-self: start; }
+.home-page .main-header .nav-links { grid-column: 3; justify-self: end; }
+.load-bar {
+    grid-column: 2;
+    grid-row: 1;
+    display: flex;
+    align-items: baseline;
+    gap: 24px;
+    font-size: 14px;
+    letter-spacing: 0.05em;
+    text-transform: lowercase;
+    white-space: nowrap;
+    opacity: 0.5;
+}
+/* имена — в рамке постоянной ширины, чтобы строка не дёргалась */
+.load-status {
+    display: inline-block;
+    width: 15ch;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.load-bar { transition: opacity 0.6s ease, visibility 0.6s; }
+.loading-done .load-bar { opacity: 0; visibility: hidden; } /* гаснет вместе с экраном загрузки */
+@media (max-width: 899px) {
+    .home-page .main-header { grid-template-columns: 1fr auto; }
+    .home-page .main-header .nav-links { grid-column: 2; }
+    .load-bar { grid-column: 1 / -1; grid-row: 2; padding-top: 12px; }
+}
+@media (max-width: 768px) {
+    .load-bar { font-size: 13px; gap: 15px; }
+}
+
 /* холст: js/gallery.js рисует на нём фото в «неспойлерном» виде */
 #preloader-img {
     display: block;

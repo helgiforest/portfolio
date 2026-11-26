@@ -30,22 +30,22 @@ window.photoFlash = (canvas, BOX = 300) => {
         // пиксели: кадр из крупных квадратов — видно цвета и свет, но не что на снимке
         pixel(img) {
             const [x, y, w, h] = fitRect(img);
-            const small = shrink(img, img.naturalWidth >= img.naturalHeight ? 14 : 10);
+            const small = shrink(img, img.naturalWidth >= img.naturalHeight ? 22 : 16);
             ctx.imageSmoothingEnabled = false;
             ctx.drawImage(small, x, y, w, h);
         },
         // размытие: цветное пятно
         blur(img) {
             const [x, y, w, h] = fitRect(img);
-            const small = shrink(img, 12);
+            const small = shrink(img, 20);
             ctx.imageSmoothingEnabled = true;
             ctx.imageSmoothingQuality = 'high';
             ctx.drawImage(small, x, y, w, h);
-            canvas.style.filter = 'blur(14px)';
+            canvas.style.filter = 'blur(8px)';
         },
         // кусочек кадра: случайный квадрат — текстура, угол, деталь
         fragment(img) {
-            const side = Math.min(img.naturalWidth, img.naturalHeight) * 0.18;
+            const side = Math.min(img.naturalWidth, img.naturalHeight) * 0.28;
             const sx = Math.random() * (img.naturalWidth - side);
             const sy = Math.random() * (img.naturalHeight - side);
             ctx.imageSmoothingEnabled = true;

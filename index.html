@@ -29,10 +29,14 @@
     <link rel="stylesheet" href="/css/base.css">
     <link rel="stylesheet" href="/css/home.css">
 </head>
-<body>
+<body class="home-page">
 
     <header class="main-header">
         <a href="/" class="logo">helgiforest</a>
+        <div class="load-bar" id="load-bar" aria-hidden="true">
+            <span class="load-word">loading</span>
+            <span class="load-status" id="load-status"></span>
+        </div>
         <nav class="nav-links">
             <a href="/" class="nav-item active">overview</a>
             <a href="/about" class="nav-item">about</a>

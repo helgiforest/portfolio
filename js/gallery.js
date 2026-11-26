@@ -49,13 +49,24 @@ document.addEventListener('DOMContentLoaded', () => {
     // На совсем плохой сети через 60 с показываем как есть — остальное докачается и проявится.
     const MAX_PRELOADER_MS = 60000;
     let revealed = false;
+    // В шапке по центру (как в разделах) — «loading» и имена скачанных файлов,
+    // по очереди не чаще раза в 60 мс — эффект «бегущих» файлов.
+    const loadStatus = document.getElementById('load-status');
+    const loadNames = [];
+    const fileName = (src) => decodeURIComponent(src.split('/').pop().replace(/\.[^.]+$/, ''));
+    const flick = setInterval(() => {
+        if (loadNames.length) loadStatus.textContent = loadNames.shift();
+    }, 60);
+
     const revealGallery = () => {
         if (revealed) return;
         revealed = true;
         clearInterval(flashInterval);
+        clearInterval(flick);
 
         setTimeout(() => {
             preloader.style.opacity = '0';
+            document.body.classList.add('loading-done');
             setTimeout(() => {
                 preloader.style.visibility = 'hidden';
                 gallery.style.opacity = '1';
@@ -79,6 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let gridLeft = totalImagesCount;
     const onDone = (img, ok) => {
+        if (!revealed) loadNames.push(fileName(img.dataset.src));
         if (ok) {
             img.classList.add('loaded');
             loadedImgs.push(img);
@@ -115,6 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!src) return;
             const im = new Image();
             im.onload = im.onerror = () => {
+                if (!revealed) loadNames.push(fileName(src));
                 if (--left === 0) resolve();
                 pump();
             };

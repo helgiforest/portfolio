@@ -20,12 +20,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const thumbsEl = document.getElementById('thumbs');
     const controlsEl = document.getElementById('viewer-controls');
 
-    // фото лежат прямо в /images/<раздел>/ (экспорт из Lightroom), превью — в thumb/
+    // фото лежат прямо в /images/<раздел>/ (экспорт из Lightroom), превью — в thumb/,
+    // версии для телефона (1170px по ширине, вдвое легче) — в phone/.
+    // Телефон — по размеру самого экрана, а не окна: узкое окно на компьютере получает полные фото.
+    const isPhoneScreen = Math.min(screen.width, screen.height) <= 500;
     const url = (size, p) => {
         const name = encodeURIComponent(p.file);
-        return size === 'thumb'
-            ? `/images/${section}/thumb/${name}.webp`
-            : `/images/${section}/${name}.${p.ext}`;
+        if (size === 'thumb') return `/images/${section}/thumb/${name}.webp`;
+        if (isPhoneScreen && p.phone) return `/images/${section}/phone/${name}.avif`;
+        return `/images/${section}/${name}.${p.ext}`;
     };
     const wrap = (i) => (i + photos.length) % photos.length;
     const gridOpen = () => document.body.classList.contains('thumbs-open');

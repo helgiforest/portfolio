@@ -71,6 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 preloader.style.visibility = 'hidden';
                 gallery.style.opacity = '1';
                 document.body.classList.add('is-loaded');
+                setTimeout(prefetchSections, 1500); // разделы — уже после того, как главная открылась
             }, 600);
         }, 800);
     };
@@ -136,6 +137,41 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         for (let k = 0; k < 6; k++) pump();
     });
+
+    // Пока человек смотрит главную, тихо докачиваем разделы из меню more (2026, 2025, ...):
+    // если он туда перейдёт, раздел откроется почти сразу — файлы уже в кэше браузера.
+    // Только на компьютере (на телефоне не тратим чужой трафик) и не в режиме экономии трафика.
+    // Адреса файлов — те же, что строит js/section.js для компьютера, иначе кэш не сработает.
+    const prefetchSections = async () => {
+        if (window.innerWidth <= 768 || Math.min(screen.width, screen.height) <= 500) return;
+        if (navigator.connection && navigator.connection.saveData) return;
+        const sections = [...document.querySelectorAll('.nav-dropdown a')]
+            .map((a) => new URL(a.href).pathname.replace(/\//g, ''))
+            .filter(Boolean);
+        const lists = [];
+        for (const sec of sections) {
+            try {
+                const text = await (await fetch(`/${sec}/photos.js`)).text();
+                const m = text.match(/=\s*(\[[\s\S]*\])\s*;?\s*$/);
+                if (m) lists.push({ sec, photos: JSON.parse(m[1]) });
+            } catch (e) { /* нет списка — пропускаем раздел */ }
+        }
+        const name = (p) => encodeURIComponent(p.file);
+        const queue = [
+            // сначала превью всех разделов (лёгкие, нужны первыми), потом сами фото
+            ...lists.flatMap(({ sec, photos }) => photos.map((p) => `/images/${sec}/thumb/${name(p)}.webp`)),
+            ...lists.flatMap(({ sec, photos }) => photos.map((p) => `/images/${sec}/${name(p)}.${p.ext}`)),
+        ];
+        const pump = () => {
+            const src = queue.shift();
+            if (!src) return;
+            const im = new Image();
+            im.fetchPriority = 'low';
+            im.onload = im.onerror = pump;
+            im.src = src;
+        };
+        for (let k = 0; k < 3; k++) pump();
+    };
 
     // --- ЛАЙТБОКС ---
     const showImage = (index) => {

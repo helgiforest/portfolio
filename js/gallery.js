@@ -16,20 +16,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const imgs = Array.from(gallery.querySelectorAll('img'));
     let currentIndex = 0;
 
-    // 2. "loading gallery" при обычном заходе, случайная фраза — только при обновлении страницы (F5)
-    const shufflePhrases = [
-        'shuffling',
-        'mixing the order',
-        'reshuffling frames',
-        'randomizing',
-        'reordering the gallery',
-        'rolling the film',
-    ];
+    // 2. "loading gallery" при обычном заходе, случайная фраза — при обновлении страницы (F5) — js/flash.js
     const navEntry = performance.getEntriesByType('navigation')[0];
     const isReload = navEntry && navEntry.type === 'reload';
-    preloaderTextLabel.textContent = isReload
-        ? shufflePhrases[Math.floor(Math.random() * shufflePhrases.length)]
-        : 'loading gallery';
+    preloaderTextLabel.textContent = window.loadingLabel();
 
     // 3. БЕСШОВНЫЙ ПРЕЛОАДЕР
     let flashIndex = 0;
@@ -37,7 +27,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const preloaderStartTime = Date.now();
     const MIN_PRELOADER_MS = isReload ? 1500 : 2600; // на обновлении держим короче, на первом заходе — как и раньше
 
-    // в прелоадере мелькают только уже скачанные фото
+    // В прелоадере мелькают уже скачанные фото, но в «неспойлерном» виде (js/flash.js)
+    const drawFlash = window.photoFlash(preloaderImg);
+
     const loadedImgs = [];
     const nextFlashImage = () => {
         if (preloader.style.visibility === 'hidden' || !loadedImgs.length) return;
@@ -46,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
             randomIndex = (randomIndex + 1) % loadedImgs.length;
         }
         flashIndex = randomIndex;
-        preloaderImg.src = loadedImgs[flashIndex].src;
+        drawFlash(loadedImgs[flashIndex]);
         preloaderImg.classList.add('loaded');
     };
 

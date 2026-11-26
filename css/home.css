@@ -22,43 +22,16 @@
     gap: 20px;
 }
 
+/* холст: js/gallery.js рисует на нём фото в «неспойлерном» виде */
 #preloader-img {
+    display: block;
     width: 300px;
     height: 300px;
-    object-fit: contain;
     opacity: 0;
     transition: opacity 0.5s ease;
 }
 #preloader-img.loaded {
     opacity: 1;
-}
-
-/* --- АНИМАЦИЯ ПЕЧАТАЮЩИХСЯ ТОЧЕК --- */
-.preloader-text {
-    font-size: 16px;
-    letter-spacing: 0.05em;
-    display: flex;
-    align-items: baseline;
-}
-
-.typewriter-dots {
-    display: inline-block;
-    width: 25px; /* Резервируем место под точки, чтобы текст не прыгал */
-    text-align: left;
-    margin-left: 4px;
-}
-
-.typewriter-dots::after {
-    content: '';
-    animation: type-dots 2.5s steps(4, end) infinite;
-}
-
-@keyframes type-dots {
-    0% { content: ''; }
-    25% { content: '.'; }
-    50% { content: '..'; }
-    75% { content: '...'; }
-    100% { content: ''; }
 }
 
 /* --- ГАЛЕРЕЯ --- */

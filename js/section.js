@@ -381,6 +381,39 @@ document.addEventListener('DOMContentLoaded', () => {
         if (names.length) statusEl.textContent = names.shift();
     }, 60);
 
+    // а посреди экрана, как на главной, раз в секунду мелькает скачанное фото
+    // в «неспойлерном» виде — пиксели, пятно или кусочек кадра (js/flash.js).
+    // Новых скачиваний нет: берём превью (они грузятся первыми), а если уже есть — большое фото.
+    // Под ним — подпись «loading gallery...», тоже как на главной.
+    const flashBox = document.createElement('div');
+    flashBox.className = 'section-flash';
+    flashBox.setAttribute('aria-hidden', 'true');
+    flashBox.innerHTML = '<canvas></canvas><div class="preloader-text"><span></span><span class="typewriter-dots"></span></div>';
+    flashBox.querySelector('.preloader-text span').textContent = window.loadingLabel();
+    document.body.appendChild(flashBox);
+    const flashCanvas = flashBox.querySelector('canvas');
+    const drawFlash = window.photoFlash(flashCanvas);
+    const flashPool = []; // кадры, у которых уже есть превью
+    let flashLast = -1;
+    const flashNext = () => {
+        if (revealed || !flashPool.length) return;
+        let k = Math.floor(Math.random() * flashPool.length);
+        if (flashPool.length > 1 && k === flashLast) k = (k + 1) % flashPool.length;
+        flashLast = k;
+        const p = flashPool[k];
+        const big = url('large', p);
+        drawFlash(elements.get(done.has(big) ? big : url('thumb', p)));
+        flashCanvas.classList.add('on');
+    };
+    const flashTimer = setInterval(flashNext, 1000);
+    const onLoaded = (src) => {
+        if (revealed || !done.has(src)) return;
+        const p = photos.find((q) => url('thumb', q) === src);
+        if (!p) return;
+        flashPool.push(p);
+        if (flashPool.length === 1) flashNext();
+    };
+
     const loadAll = () => new Promise((resolve) => {
         const PARALLEL = 6;
         const total = queue.length;
@@ -391,6 +424,7 @@ document.addEventListener('DOMContentLoaded', () => {
             preload(item.src, 'low').then(() => {
                 loadedCount++;
                 if (!revealed) names.push(item.name);
+                onLoaded(item.src);
                 if (loadedCount === total) resolve();
                 pump();
             });
@@ -404,6 +438,9 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => {
             revealed = true;
             clearInterval(flick);
+            clearInterval(flashTimer);
+            flashBox.classList.add('done');
+            setTimeout(() => flashBox.remove(), 600);
             bar.classList.remove('is-loading');
             document.body.classList.add('is-loaded');
             fit();

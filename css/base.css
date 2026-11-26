@@ -133,6 +133,34 @@ img {
 .lb-text-btn:hover { opacity: 0.5; }
 .lb-separator { opacity: 0.3; }
 
+/* --- ПОДПИСЬ ЭКРАНА ЗАГРУЗКИ «loading gallery...» (главная и разделы) --- */
+.preloader-text {
+    font-size: 16px;
+    letter-spacing: 0.05em;
+    display: flex;
+    align-items: baseline;
+}
+
+.typewriter-dots {
+    display: inline-block;
+    width: 25px; /* Резервируем место под точки, чтобы текст не прыгал */
+    text-align: left;
+    margin-left: 4px;
+}
+
+.typewriter-dots::after {
+    content: '';
+    animation: type-dots 2.5s steps(4, end) infinite;
+}
+
+@keyframes type-dots {
+    0% { content: ''; }
+    25% { content: '.'; }
+    50% { content: '..'; }
+    75% { content: '...'; }
+    100% { content: ''; }
+}
+
 @media (max-width: 768px) {
     .main-header { padding: 20px 15px; }
     .logo { font-size: 24px; }
